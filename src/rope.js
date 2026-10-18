@@ -13,6 +13,7 @@
 // paints its outline across the under-piece exactly like a hand drawing.
 
 const SAMPLE_STEP = 0.55; // world units between spline samples
+const CUT_OVERLAP = 0.35; // world units each piece runs past a cut toward a painted neighbour
 
 // ---------------------------------------------------------------- spline
 
@@ -179,8 +180,11 @@ export function analyse(curves, opts) {
         // A rope grazing a prop's silhouette runs almost parallel to it, so
         // the footprint would balloon; there the rope is beside the prop and
         // the paint order hardly shows, so cap it tighter.
+        // Half-length of the stretch of under-strand covered by the over
+        // strand, plus the outline and the small overlap pieces paint past a
+        // cut. Pieces end with butt caps, so no cap radius is needed.
         const isProp = ca.kind === 'prop' || cb.kind === 'prop';
-        const f = Math.min(isProp ? 1.2 * w : 3 * w, (w / 2) / sin) + w / 2 + ow;
+        const f = Math.min(isProp ? 1.2 * w : 2.5 * w, (w / 2) / sin) + ow + CUT_OVERLAP + 0.15;
         crossings.push({ a: { ci: A.ci, s: sa, z: za }, b: { ci: B.ci, s: sb, z: zb }, x, y, angle: hit.angle, f });
       } else if (ca.kind === 'rope' && cb.kind === 'rope') {
         const dist = segDist(A.a, A.b, B.a, B.b);
@@ -227,8 +231,11 @@ export function analyse(curves, opts) {
         // Report it only when the footprints overlap by more than a rope
         // width: a smaller overlap is resolved by the weak edges below.
         const graze = curves[other(c1)].kind === 'prop' || curves[other(c2)].kind === 'prop';
+        // A thin cord wrapped round a much thicker strand crosses it every half
+        // turn; those alternating crossings along the thick strand paint fine.
+        const thin = (curves[other(c1)].width || w) < 0.7 * (curves[ci].width || w);
         const overlap = e1.hi - e2.lo;
-        if (!graze && overlap > w) conflicts.push({ ci, s: (e1.s + e2.s) / 2, x: c1.x, y: c1.y });
+        if (!graze && !thin && overlap > w) conflicts.push({ ci, s: (e1.s + e2.s) / 2, x: c1.x, y: c1.y });
       }
     }
     let prev = 0;
@@ -428,8 +435,6 @@ function disc(ctx, p, r) {
   ctx.fill();
 }
 
-const CUT_OVERLAP = 0.35; // world units each piece runs past a cut
-
 // Paint one scene. `scene` = {strands:[{ctrl, color, width, tipLen, tipColor, id}], props:[], width, outline}
 // Returns the analysis (used by lint and tests).
 export function paintScene(ctx, scene, style = {}) {
@@ -441,7 +446,7 @@ export function paintScene(ctx, scene, style = {}) {
     tipLen: st.tipLen ?? (st.end === 'working' ? w * 2.2 : 0),
     tipColor: st.tipColor || style.tipColor || '#f3f0e6',
   }));
-  const curves = strands.map((st, i) => ({ samples: st.samples, kind: 'rope', id: st.id, strandIndex: i }));
+  const curves = strands.map((st, i) => ({ samples: st.samples, kind: 'rope', id: st.id, strandIndex: i, width: st.width }));
   const props = scene.props || [];
   for (const prop of props) {
     for (const outline of propOutlines(prop)) curves.push({ samples: outline, kind: 'prop', z: prop.z || 0, prop });

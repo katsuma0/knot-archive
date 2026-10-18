@@ -80,7 +80,7 @@ Single strand: a pose is an array of points. Several strands: a pose is `{ a: [.
 - World is 100 wide by 100 tall, y grows downward, like the screen. The knot should fill about 60 to 70 percent of the view. Leave room for labels.
 - A point is `[x, y, z]`. `z` only decides what is painted on top at a crossing: bigger z is nearer the viewer. Use +1 for the strand on top, -1 for the strand underneath, 0 for flat rope that crosses nothing. z is interpolated along the rope between control points, so give the points on both sides of a crossing a clear value.
 - The standing part should leave the frame (start the strand off screen, e.g. x = -8 or y = -12).
-- The rope width is `ropeWidth`. Two crossings on the same strand need at least 2.5 rope widths between them. Two ropes lying side by side need at least 1.1 rope widths between centre lines, or clearly different z. Crossings should be near 90 degrees; under 35 degrees reads badly and the lint flags it.
+- The rope width is `ropeWidth`. Two crossings of opposite sense (an over then an under) on the same strand need about 1.7 rope widths between them along the rope (the lint reports a "crossing conflict" when they are closer); two of the same sense can be as close as you like. Two ropes lying side by side need at least 1.1 rope widths between centre lines, or clearly different z. Crossings should be near 90 degrees; under 35 degrees reads badly and the lint flags it.
 - Never let the rope pass through a prop. A rope going behind a post has z = -1 there; the renderer hides it.
 
 ## 4. The segment recipe (do this, always)
@@ -113,7 +113,9 @@ Rules that follow from it:
 
 Between two frames every point moves in a straight line and its z blends linearly. So a point that has to cross another strand must ALREADY have the right z before it crosses. If the end has to go behind the standing part, add a frame where the end has dropped behind (z = -1) while it is still clear of the standing part, and only then a frame where it has crossed. Same for coming up through a loop: a frame tucked under the bottom edge with the tip already z = +1 inside the loop, then a frame with the end through. The lint reports "rope passes through itself" with the time and place when you get this wrong; add the in-between frame and run again.
 
-Keep every frame tween short and single-purpose: lift, move, drop. Three frames of 0.7 s read better than one frame of 2 s.
+Keep every frame tween short and single-purpose: lift, move, drop. Three frames of 0.7 s read better than one frame of 2 s. Never let a long free tail reverse direction by 180 degrees in one tween: under linear blending it folds through itself. Move it a quarter turn per frame.
+
+`line(a, b, n)` keeps the z of its end points when you omit the z argument. Labels are about 1.6 world units per character at the default size, so a long label needs `size` or a second label. Keep the file compact: a knot rarely needs more than 250 lines, and never paste a whole lint JSON into your reasoning; read `--verbose` output instead.
 
 ## 6. Props and wraps
 
@@ -129,7 +131,7 @@ const turn = (y0, y1) => wrapPost(50, R, y0, y1, 90, 1, 13, -1);   // one full t
 
 `wrapBar(cy, r, x0, x1, a0, turns, nPerTurn, dir)` is the same for a horizontal bar (angle 0 = bottom edge, 90 = front, 180 = top, 270 = behind). For a tilted bar, build the wrap with `wrapBar` and `rotate` it.
 
-In-progress wraps: `partial(turn, 0.3, n, toward)` lays the first 30 percent of the turn and lets the rest of its length hang toward a point. Then `extend(partialPts, len, nRest, toward)` lays the segments not tied yet as a straight run. See `clove-hitch.js` for the three-frame pattern per turn (going behind at one edge, behind the post with the end hanging out the far side, back in front).
+In-progress wraps: `partial(turn, 0.3, n, toward)` lays the first 30 percent of the turn and lets the rest of its length hang toward a point (`partial(turn, 0.3, n, toward, 0)` stops at the cut instead). Then `extend(partialPts, len, nRest, toward)` lays the segments not tied yet as a straight run. See `clove-hitch.js` for the three-frame pattern per turn (going behind at one edge, behind the post with the end hanging out the far side, back in front).
 
 Several turns, like a prusik or a uni knot: generate each turn with the same `wrapPost` call at different heights and keep each as its own segment. Pitch (vertical distance per turn) at least 1.2 rope widths.
 
