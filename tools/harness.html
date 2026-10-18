@@ -5,7 +5,7 @@
 <script type="module">
 import { buildTimeline, poseAt, lerpPose } from '../src/anim.js';
 import { paintFrame, THEMES } from '../src/scene.js';
-import { paintScene, sampleSpline } from '../src/rope.js';
+import { paintScene, sampleSpline, hookCenterline } from '../src/rope.js';
 const canvas = document.getElementById('c');
 const ctx2 = canvas.getContext('2d');
 window.__ready = true;
@@ -107,6 +107,7 @@ window.lintKnot = async (modPath) => {
       if (pr.type === 'post') return Math.abs(p.x - pr.x) < pr.r + w * 1.5 && p.y > pr.y1 - w && p.y < pr.y2 + w;
       if (pr.type === 'bar') { const L = Math.hypot(pr.x2 - pr.x1, pr.y2 - pr.y1) || 1; const t = ((p.x - pr.x1) * (pr.x2 - pr.x1) + (p.y - pr.y1) * (pr.y2 - pr.y1)) / (L * L); const cx = pr.x1 + (pr.x2 - pr.x1) * Math.max(0, Math.min(1, t)), cy = pr.y1 + (pr.y2 - pr.y1) * Math.max(0, Math.min(1, t)); return Math.hypot(p.x - cx, p.y - cy) < pr.r + w * 1.5; }
       if (pr.type === 'ring') return Math.abs(Math.hypot(p.x - pr.cx, p.y - pr.cy) - pr.r) < pr.t + w * 1.5;
+      if (pr.type === 'hook') { if (Math.abs(Math.hypot(p.x - pr.cx, p.y - pr.cy) - pr.r) < pr.t + w * 1.5) return true; return hookCenterline(pr).pts.some((q) => Math.hypot(p.x - q[0], p.y - q[1]) < pr.t / 2 + w * 1.5); }
       if (pr.type === 'carabiner') return Math.abs(p.x - pr.cx) < (pr.w || 14) / 2 + w * 1.5 && Math.abs(p.y - pr.cy) < (pr.h || 24) / 2 + w * 1.5;
       return false;
     });
@@ -181,6 +182,14 @@ window.lintKnot = async (modPath) => {
     const state = poseAt(tl, t);
     if (!state.tween) { prev = null; continue; }
     const res = paintFrame(ctx, knot, state, { cw: size, ch: size, dpr: 1 });
+    // A rope crossing a prop steeply at the prop's own depth is cutting
+    // through it. (A shallow crossing is the rope grazing a post's edge in
+    // a wrap, where its depth passes through zero legitimately.)
+    for (const c of res.crossings) {
+      const ropeA = c.a.ci < ids.length, ropeB = c.b.ci < ids.length;
+      if (ropeA === ropeB || c.angle < 0.6) continue;
+      if (Math.abs(c.a.z - c.b.z) < 0.2) flips.push({ t: +t.toFixed(2), step: state.step, frame: state.frame, x: +c.x.toFixed(0), y: +c.y.toFixed(0), prop: true });
+    }
     const cur = res.crossings.filter((c) => c.a.ci < ids.length && c.b.ci < ids.length).map(canon);
     if (prev) {
       for (const c of cur) {
@@ -188,7 +197,7 @@ window.lintKnot = async (modPath) => {
         const same = prev.find((d) => near(d, 1.5 * w) && d.over === c.over);
         if (same) continue;
         const m = prev.find((d) => near(d, 0.75 * w) && d.over !== c.over);
-        if (m) flips.push({ t: +t.toFixed(2), step: state.step, frame: state.frame, x: +c.x.toFixed(0), y: +c.y.toFixed(0) });
+        if (m) flips.push({ t: +t.toFixed(2), step: state.step, frame: state.frame, x: +c.x.toFixed(0), y: +c.y.toFixed(0), prop: false });
       }
     }
     prev = cur;
@@ -196,7 +205,11 @@ window.lintKnot = async (modPath) => {
   if (flips.length) {
     const byStep = {};
     for (const f of flips) { const k = `${f.step}/${f.frame}`; (byStep[k] = byStep[k] || []).push(f); }
-    for (const [k, list] of Object.entries(byStep)) warnings.push(`step ${k.split('/')[0]} frame ${k.split('/')[1]}: rope passes through itself ${list.length} time(s) during the tween, e.g. t=${list[0].t}s near (${list[0].x}, ${list[0].y}). Add an in-between frame that lifts the end over, or fix z on the moving part.`);
+    for (const [k, list] of Object.entries(byStep)) {
+      const prop = list.filter((f) => f.prop), rope = list.filter((f) => !f.prop);
+      if (rope.length) warnings.push(`step ${k.split('/')[0]} frame ${k.split('/')[1]}: rope passes through itself ${rope.length} time(s) during the tween, e.g. t=${rope[0].t}s near (${rope[0].x}, ${rope[0].y}). Add an in-between frame that lifts the end over, or fix z on the moving part.`);
+      if (prop.length) warnings.push(`step ${k.split('/')[0]} frame ${k.split('/')[1]}: rope passes through a prop ${prop.length} time(s) during the tween, e.g. t=${prop[0].t}s near (${prop[0].x}, ${prop[0].y}). Move the rope round the prop with an in-between frame instead of through it.`);
+    }
   }
   return { id: knot.id, errors, warnings, steps: stepsOut, stepCount: knot.steps.length, total: tl.total };
 };

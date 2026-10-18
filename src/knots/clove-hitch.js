@@ -48,7 +48,7 @@ const p2 = pose(A, F1, B1, C, extend(C, 14, nW, [100, 30]), extend(extend(C, 14,
 // 3: round the back again, higher, coming out on the left above the standing part
 const b2a = partial(B2, 0.5, nW, [20, 6]);
 const p3a = pose(A, F1, B1, C, b2a, extend(b2a, 16, nE, [20, 6]));
-const p3 = pose(A, F1, B1, C, B2, extend(B2, 16, nE, [8, 34]));
+const p3 = pose(A, F1, B1, C, B2, line(P(37, 40, 0.3), P(24, 36, 0.6), nE)); // end out on the left, already lifted toward you so it can come across the front
 // 4: tuck the end right, under the diagonal
 const p4 = pose(A, F1, B1, C, B2, E);
 // 5: snug: the passes close up on the diagonal

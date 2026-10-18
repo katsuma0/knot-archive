@@ -58,15 +58,15 @@ const p0 = pose(
   line(P(85, 54, 0.5), P(92, 53, 0.5), nOut),
 );
 
-// 1pre: end lifted and swung up and over to the right in an open arc, tip pointing left at the top
-const p1pre = pose(S, ...lay([P(43, 51, -1), P(55, 46, 0.3), P(66, 36, 1), P(71, 22, 1), P(66, 9, 1), P(54, 4, 1), P(42, 7, 1), P(34, 15, 1)], [nLoop, nRound, nThru, nOut], [0.62, 0.2, 0.11]));
+// The swing frames are laid with lay() and nearly the same fractions, so the
+// segment boundaries slide only a little between frames and the mid-tween
+// shape stays smooth.
+// 1up: end lifted up and to the right, pointing up (a quarter of the swing)
+const p1up = pose(S, ...lay([P(43, 51, -1), P(53, 47, 0.3), P(62, 41, 1), P(68, 32, 1), P(70, 21, 1), P(69, 10, 1)], [nLoop, nRound, nThru, nOut], [0.8, 0.1, 0.06]));
+// 1pre: end carried over the top, pointing left and down
+const p1pre = pose(S, ...lay([P(43, 51, -1), P(55, 46, 0.3), P(66, 36, 1), P(71, 22, 1), P(66, 9, 1), P(54, 4, 1), P(42, 7, 1), P(34, 15, 1)], [nLoop, nRound, nThru, nOut], [0.8, 0.1, 0.06]));
 // 1a: end swung up and round, hovering in front, tip just above the standing part
-const p1a = pose(S,
-  resample([P(43, 51, -1), P(55, 46, 0.5), P(67, 36, 1), P(70, 22, 1), P(60, 9, 1), P(45, 8, 1), P(34, 16, 1), P(29, 29, 1), P(31, 38, 1)], nLoop),
-  line(P(31, 38, 1), P(34, 43, 1), nRound),
-  line(P(34, 43, 1), P(36, 46, 1), nThru),
-  line(P(36, 46, 1), P(37.5, 48.5, 1), nOut),
-);
+const p1a = pose(S, ...lay([P(43, 51, -1), P(55, 46, 0.5), P(67, 36, 1), P(70, 22, 1), P(60, 9, 1), P(45, 8, 1), P(34, 16, 1), P(29, 29, 1), P(31, 38, 1), P(34, 43, 1), P(36, 46, 1), P(37.5, 48.5, 1)], [nLoop, nRound, nThru, nOut], [0.86, 0.07, 0.04]));
 // 1: loop made, end lying across the top of the standing part, hanging down
 const p1 = pose(S, LOOP,
   line(P(40, 58, 1), P(43, 66, 1), nRound),
@@ -112,7 +112,7 @@ const p5 = pose(
   resample(sh(LOOPc), nLoop),
   resample(sh(ROUNDc), nRound),
   resample(sh(THRUc), nThru),
-  resample([...sh(OUTc), P(84, 47, 0), P(92, 48, 0)], nOut),
+  resample([...sh(OUTc).slice(0, 4), P(74, 46, 0), P(92, 50, 0)], nOut),
 );
 
 export default {
@@ -124,31 +124,31 @@ export default {
   difficulty: 1,
   summary: 'The standard stopper knot. Bulkier than an overhand, and it still unties easily after it has been loaded.',
   uses: [
-    'Stopper in the end of a rappel rope so the end cannot run through the belay device.',
+    'Stopper in the end of a rope when nothing better is to hand. For a rappel rope a double overhand holds better under repeated jerks.',
     'Stop a guy line or a tarp ridgeline pulling out of a grommet, a line tensioner or a tie-out.',
     'Stop a bear bag line or a throw line sliding back through a carabiner or a pulley.',
     'Keep a drawcord from pulling out of a stuff sack channel or a cord lock.',
     'Building block: the figure eight on a bight, the figure eight follow through and the figure eight bend all start with this knot.',
   ],
-  pros: ['Bigger and rounder than an overhand, so it stops in a bigger hole.', 'Does not jam. After a hard pull you can still pick it apart.', 'Easy to check by eye: an 8 lying on its side.'],
+  pros: ['Bigger and rounder than an overhand, so it stops in a bigger hole.', 'Jams far less than an overhand. After a hard pull you can still pick it apart.', 'Easy to check by eye: it looks like an 8.'],
   cons: ['Uses more rope than an overhand.', 'Can shake loose in stiff or slick rope if it is left slack with a short tail.'],
-  warnings: ['Under repeated jerks it can roll off the end of the rope if the tail is short. Leave a tail of at least ten rope widths and snug it hard, or tie a double overhand instead.', 'This is a stopper, not a loop. To tie in to a harness or round a tree, tie the figure eight follow through.'],
-  check: 'Look for an 8 lying on its side: two lobes, four crossings, and the rope goes over, under, over, under all the way round. The standing part and the tail leave from opposite ends. One lobe and three crossings means you tied an overhand.',
-  tips: ['Say it as you tie: over, round behind, back through. The extra half turn round the standing part is the only difference from an overhand.', 'Dress it before you load it: pull the standing part and the tail apart and press the two lobes flat so they lie side by side.', 'To untie after loading, push the tail back into the knot and the lobes open up.'],
+  warnings: ['Under repeated jerks it can roll off the end of the rope if the tail is short. Leave a tail of at least ten rope widths and snug it hard, or tie a double overhand instead.', 'This is a stopper, not a loop. To tie in for climbing or to tie round a tree, tie the figure eight follow through.'],
+  check: 'Look for an 8: one lobe above the line and one below, four crossings, and the rope goes over, under, over, under all the way round. The standing part and the tail leave from opposite ends. One lobe and three crossings means you tied an overhand.',
+  tips: ['Say it as you tie: over, round behind, back through. The extra half turn round the standing part is the only difference from an overhand.', 'Dress it before you load it: pull the standing part and the tail apart and press the two lobes flat.', 'To untie after loading, bend the knot in half and push the tail back toward it. The lobes loosen.'],
   related: ['overhand', 'double-overhand', 'figure-eight-on-a-bight', 'figure-eight-follow-through', 'figure-eight-bend', 'ashleys-stopper'],
   ropeWidth: 4,
   strands: [{ id: 'a', color: 'orange', end: 'working' }],
   steps: [
     { title: 'Start', text: 'Lay the rope out. The long side on the left is the standing part. The short side you will move is the working end, marked with the pale band.', pose: p0,
       labels: [{ text: 'standing part', at: [8, 69] }, { text: 'working end', at: [86, 47], anchor: 'right' }] },
-    { title: 'Make a loop', text: 'Swing the working end up, round to the left and back down. Lay it across the top of the standing part so it hangs below. The end sits on top at the crossing.', frames: [p1pre, p1a, p1], dur: [1.1, 1.0, 1.0],
+    { title: 'Make a loop', text: 'Swing the working end up, round to the left and back down. Lay it across the top of the standing part so it hangs below. The end sits on top at the crossing.', frames: [p1up, p1pre, p1a, p1], dur: [0.8, 0.7, 0.8, 0.9], trailBend: 0.3,
       labels: [{ text: 'end on top', at: [47, 62] }] },
-    { title: 'Round behind the standing part', text: 'Swing the end to the left, below the standing part, then push it up behind the standing part. It comes out above, on the left of the loop.', frames: [p2a, p2b, p2], dur: [1.0, 1.1, 0.9],
+    { title: 'Round behind the standing part', text: 'Swing the end to the left, below the standing part, then push it up behind the standing part. It comes out above, on the left of the loop.', frames: [p2a, p2b, p2], dur: [1.0, 1.1, 0.9], trailBend: -0.25,
       labels: [{ text: 'behind', at: [4, 49] }] },
-    { title: 'Over the left side of the loop', text: 'Bring the end forward and lay it over the left side of the loop, pointing right across the middle.', frames: [p3a, p3], dur: [0.9, 1.4],
+    { title: 'Over the left side of the loop', text: 'Bring the end forward and lay it over the left side of the loop, pointing right across the middle.', frames: [p3a, p3], dur: [0.9, 1.4], trailBend: 0.2,
       labels: [{ text: 'over', at: [21, 30], anchor: 'center' }] },
     { title: 'Under the right side and out', text: 'Push the end under the right side of the loop and pull it out to the right. Over, under, over, under all the way round: that is the figure eight.', frames: [p4a, p4], dur: [1.0, 1.1],
       labels: [{ text: 'under', at: [78, 25], anchor: 'center' }] },
-    { title: 'Snug it down', text: 'Pull the standing part and the tail apart. The two lobes close up side by side into an 8. Leave a tail at least ten rope widths long.', frames: [p5], dur: 1.4 },
+    { title: 'Snug it down', text: 'Pull the standing part and the tail apart. The two lobes close up into an 8, one above the line and one below. Leave a tail at least ten rope widths long.', frames: [p5], dur: 1.4 },
   ],
 };

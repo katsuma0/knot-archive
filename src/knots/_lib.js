@@ -10,9 +10,12 @@ export const P = (x, y, z = 0) => [x, y, z];
 
 export const deg = (d) => (d * Math.PI) / 180;
 
-// n points from a to b inclusive. z: number or [z0, z1] (linear).
-export function line(a, b, n, z = 0) {
+// n points from a to b inclusive. z: number or [z0, z1] (linear). When z is
+// not given, the z of a and b are used (blended), so line(P(x,y,1), P(x,y,1), n)
+// stays at z = 1.
+export function line(a, b, n, z) {
   const out = [];
+  if (z == null) z = [a[2] || 0, b[2] || 0];
   for (let i = 0; i < n; i++) {
     const u = n === 1 ? 0 : i / (n - 1);
     const zz = Array.isArray(z) ? z[0] + (z[1] - z[0]) * u : z;
@@ -164,13 +167,15 @@ export function padEnd(pts, total, dir = null) {
 // `toward` = [x, y] if given). Always n points. Use it to show the end
 // travelling along a wrap or a tuck over several frames:
 //   partial(turn, 0.33, 14), partial(turn, 0.66, 14), resample(turn, 14)
-export function partial(pts, fraction, n, toward = null) {
+// restLen: how much rope to lay straight on (default: the rest of the path's
+// length, so the segment keeps its length); pass 0 to stop at the cut.
+export function partial(pts, fraction, n, toward = null, restLen = null) {
   const fine = resample(pts, 200);
   const L = pathLength(pts);
   const k = Math.max(2, Math.min(fine.length, Math.round(fraction * fine.length)));
   const laid = fine.slice(0, k);
   const last = laid[laid.length - 1], prev = laid[Math.max(0, laid.length - 4)];
-  const rest = L * (1 - fraction);
+  const rest = restLen == null ? L * (1 - fraction) : restLen;
   const dir = toward ? [toward[0] - last[0], toward[1] - last[1]] : [last[0] - prev[0], last[1] - prev[1]];
   const dl = Math.hypot(dir[0], dir[1]) || 1;
   const tip = [last[0] + (dir[0] / dl) * rest, last[1] + (dir[1] / dl) * rest, last[2]];
