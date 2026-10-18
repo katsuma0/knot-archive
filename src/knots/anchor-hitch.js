@@ -18,7 +18,7 @@ const ring = { type: 'ring', cx: 50, cy: 22, r: 10, t: 3 };
 const pol = (th, r, z) => P(50 + r * Math.cos((th * Math.PI) / 180), 22 + r * Math.sin((th * Math.PI) / 180), z);
 const R = resample;
 const LEN = 350;
-const nS = 7, nF = 7, nB = 8, nH = 6, nK = 7, nJ = 6, nT = 7;
+const nS = 7, nF = 7, nB = 9, nH = 6, nK = 7, nJ = 6, nT = 7;
 const CN = [nS, nF, nB, nB, nF, nH, nH, nH, nK, nK, nK, nJ, nJ, nJ, nJ, nT];
 const pose = (...segs) => {
   const last = segs[segs.length - 1], tip = last[last.length - 1];
@@ -32,34 +32,34 @@ const at = (p, z) => P(p[0], p[1], z);
 const SP = R([P(62, 100, 0), P(62, 76, 0), P(61.8, 58, 0), P(61.3, 46, 0), P(60.5, 38, 0.5)], nS);
 const A1 = pol(67, 6, 0), A2 = pol(113, 6, 0);
 const f1 = (za) => R([P(60.5, 38, 0.5), pol(54, 15, 0.9), pol(61, 10, 1), pol(64, 8, 0.8), at(A1, za)], nF);
-const b1 = (lo) => R([A1, pol(72, 8, -0.8), pol(75, 10, -1), pol(78, 15, -0.9), ...(lo ? [P(51.8, 41, -0.5), pol(90, 22, 0)] : [pol(85, 17.5, -0.5), pol(90, 19, 0)])], nB);
-const f2 = (lo, za) => R([...(lo ? [pol(90, 22, 0), P(48.2, 41, 0.5)] : [pol(90, 19, 0), pol(95, 17.5, 0.5)]), pol(102, 15, 0.9), pol(105, 10, 1), pol(108, 8, 0.8), at(A2, za)], nB);
+const b1 = (lo) => R([A1, pol(72, 8, -0.8), pol(75, 10, -1), pol(78, 15, -0.9), ...(lo ? [P(52.8, 40.5, -0.6), P(51.8, 43, -0.3), P(50, 44.3, 0)] : [pol(85, 17.5, -0.5), pol(90, 19, 0)])], nB);
+const f2 = (lo, za) => R([...(lo ? [P(50, 44.3, 0), P(48.2, 43, 0.3), P(47.2, 40.5, 0.6)] : [pol(90, 19, 0), pol(95, 17.5, 0.5)]), pol(102, 15, 0.9), pol(105, 10, 1), pol(108, 8, 0.8), at(A2, za)], nB);
 const b2 = (lo) => R([A2, pol(116, 8, -0.8), pol(119, 10, -1), pol(126, 15, -0.9), lo ? P(38.5, 40, -0.5) : P(39.5, 38, -0.4)], nF);
 const F1 = f1(0), B1L = b1(true), B1S = b1(false), F2L = f2(true, 0), F2S = f2(false, 0), B2L = b2(true), B2S = b2(false);
 
 // ---- first hitch: forward, over the standing part, up its right side to the ring (L loose, S snug)
 const E = pol(35, 15, 0);
-const HaL = R([P(38.5, 40, -0.5), P(39.5, 45, 0.2), P(44, 50, 0.8), P(52, 53, 1), P(56, 53.5, 1)], nH);
-const HaS = R([P(39.5, 38, -0.4), P(40.5, 42, 0.2), P(44, 45.5, 0.8), P(52, 47.5, 1), P(56, 47.8, 1)], nH);
-const HbL = R([P(56, 53.5, 1), P(62, 54, 1), P(67, 52.5, 0.6), P(69, 46, 0.2)], nH);
-const HbS = R([P(56, 47.8, 1), P(62, 48, 1), P(66, 46.5, 0.6), P(67.8, 42, 0.2)], nH);
-const HcL = R([P(69, 46, 0.2), P(68.5, 40, 0.1), P(67.5, 34, 0), P(65, 30.7, 0), E], nH);
-const HcS = R([P(67.8, 42, 0.2), P(67.5, 37, 0.1), P(66.3, 33, 0), P(64.5, 31, 0), E], nH);
+const HaL = R([P(38.5, 40, -0.5), P(39.5, 44.5, 0.2), P(44, 48.5, 0.8), P(52, 50.5, 1), P(56, 50.8, 1)], nH);
+const HaS = R([P(39.5, 38, -0.4), P(41.5, 42.5, 0.2), P(46, 45.5, 0.8), P(52, 46.5, 1), P(56, 46.6, 1)], nH);
+const HbL = R([P(56, 50.8, 1), P(62, 51.2, 1), P(67, 49.7, 0.6), P(69, 44, 0.2)], nH);
+const HbS = R([P(56, 46.6, 1), P(61.5, 46.8, 1), P(65.5, 45.5, 0.6), P(67, 41.5, 0.2)], nH);
+const HcL = R([P(69, 44, 0.2), P(68.5, 39, 0.1), P(67.5, 34, 0), P(65, 30.7, 0), E], nH);
+const HcS = R([P(67, 41.5, 0.2), P(66.8, 37, 0.1), P(65.8, 33, 0), P(64.3, 31, 0), E], nH);
 // the tuck, in three pushes along the ring (z 0: under the front legs, over the back legs)
 const K1 = arc(50, 22, 15, 35, 70, nK, 0), K2 = arc(50, 22, 15, 70, 110, nK, 0), K3 = arc(50, 22, 15, 110, 142, nK, 0);
 
 // ---- second half hitch: down the left, over the standing part, round, behind it, out under its own strand
 const X = pol(142, 15, 0);
 const JaL = R([X, P(35.5, 30.2, 0.2), P(32.3, 32.8, 0.5), P(31, 38.5, 0.8), P(31.5, 46, 1)], nJ);
-const JaS = R([X, P(35.5, 30.2, 0.2), P(32.3, 32.8, 0.5), P(31.2, 38.5, 0.8), P(33, 46, 1)], nJ);
-const JbL = R([P(31.5, 46, 1), P(33.5, 55, 1), P(37.5, 64, 1), P(44.5, 69.5, 1), P(55, 71.6, 1)], nJ);
-const JbS = R([P(33, 46, 1), P(35.5, 53.5, 1), P(40, 59.5, 1), P(50, 62, 1), P(55, 62.2, 1)], nJ);
-const Jc1L = R([P(55, 71.6, 1), P(62, 72, 1), P(66.5, 70.5, 0.6), P(68.5, 66, 0)], nJ);
-const Jc1S = R([P(55, 62.2, 1), P(61.5, 62.4, 1), P(65.5, 61, 0.6), P(67.5, 57.5, 0)], nJ);
-const Jc2L = R([P(68.5, 66, 0), P(67.5, 63, -0.4), P(65.5, 61.8, -0.8), P(62, 61.5, -1), P(55, 61.5, -1)], nJ);
-const Jc2S = R([P(67.5, 57.5, 0), P(66.5, 55, -0.4), P(64.5, 54.2, -0.8), P(61.5, 54, -1), P(55, 54.2, -1)], nJ);
-const TLL = R([P(55, 61.5, -1), P(46, 61.8, -1), P(40, 62.2, -1), P(36.5, 62.6, -1), P(31, 63.5, -0.6), P(24, 66, -0.2)], nT);
-const TLS = R([P(55, 54.2, -1), P(46, 54.5, -1), P(40, 54.8, -1), P(36, 55, -1), P(30, 56.5, -0.6), P(23, 60, -0.2)], nT);
+const JaS = R([X, P(35.5, 30.5, 0.2), P(33.3, 34, 0.5), P(33.5, 40, 0.8), P(35.5, 45.5, 1)], nJ);
+const JbL = R([P(31.5, 46, 1), P(33.5, 54, 1), P(37.5, 61.5, 1), P(45, 66, 1), P(55, 67.6, 1)], nJ);
+const JbS = R([P(35.5, 45.5, 1), P(38.5, 51, 1), P(43, 56, 1), P(50, 59.3, 1), P(55, 60.2, 1)], nJ);
+const Jc1L = R([P(55, 67.6, 1), P(62, 68, 1), P(66.5, 66.5, 0.6), P(68.5, 62, 0)], nJ);
+const Jc1S = R([P(55, 60.2, 1), P(61.5, 60.5, 1), P(65.5, 59.3, 0.6), P(67.3, 56, 0)], nJ);
+const Jc2L = R([P(68.5, 62, 0), P(67.5, 59, -0.4), P(65.5, 57.8, -0.8), P(62, 57.5, -1), P(55, 57.5, -1)], nJ);
+const Jc2S = R([P(67.3, 56, 0), P(66.3, 53.8, -0.4), P(64.3, 53, -0.8), P(61.5, 52.8, -1), P(55, 53, -1)], nJ);
+const TLL = R([P(55, 57.5, -1), P(46, 57.8, -1), P(40, 58.2, -1), P(35.8, 58.6, -1), P(30, 60, -0.6), P(23, 63, -0.2)], nT);
+const TLS = R([P(55, 53, -1), P(47, 53.2, -1), P(42.5, 53.4, -1), P(38, 54, -1), P(32, 55.5, -0.6), P(25, 58.5, -0.2)], nT);
 
 // 0: end held in front of the ring, just below it
 const p0 = pose(SP, line(P(60.5, 38, 0.5), P(58, 34.8, 1), nF));
@@ -67,9 +67,9 @@ const p0 = pose(SP, line(P(60.5, 38, 0.5), P(58, 34.8, 1), nF));
 const p1a0 = pose(SP, f1(0.7), line(at(A1, 0.7), P(51.5, 22, 0.2), nB));
 const p1a = pose(SP, F1, line(A1, P(50.5, 8, -1), nB));
 const p1b0 = pose(SP, F1, line(A1, P(34, 24, -1), nB));
-const p1b = pose(SP, F1, B1L, line(pol(90, 22, 0), P(50.5, 57, -0.3), nB));
+const p1b = pose(SP, F1, B1L, line(P(50, 44.3, 0), P(50.5, 57, -0.3), nB));
 // 2: forward under the ring, up through it again to the left, down behind: the round turn
-const p2a0 = pose(SP, F1, B1L, line(pol(90, 22, 0), P(38, 47, 1), nB));
+const p2a0 = pose(SP, F1, B1L, line(P(50, 44.3, 0), P(38, 47, 1), nB));
 const p2a = pose(SP, F1, B1L, f2(true, 0.7), line(at(A2, 0.7), P(46.5, 22, 0.2), nF));
 const p2b = pose(SP, F1, B1L, F2L, line(A2, P(47, 8, -1), nF));
 const p2c = pose(SP, F1, B1L, F2L, line(A2, P(32, 30, -1), nF));
@@ -129,19 +129,19 @@ export default {
   ],
   related: ['round-turn-two-half-hitches', 'two-half-hitches', 'buntline-hitch', 'clove-hitch', 'bowline'],
   ropeWidth: 4,
-  view: { x: 6, y: 0, w: 82, h: 82 },
+  view: { x: 13, y: 2, w: 74, h: 74 },
   props: [ring],
   strands: [{ id: 'a', color: 'orange', end: 'working' }],
   steps: [
     { title: 'Start', text: 'Bring the rope up to the ring from below. The standing part runs down to the load. Hold the working end, with the pale band, in front of the ring.', pose: p0,
-      labels: [{ text: 'standing part', at: [66, 78] }, { text: 'working end', at: [65, 36] }, { text: 'ring', at: [50, 6], anchor: 'center' }] },
+      labels: [{ text: 'standing part', at: [58, 70], anchor: 'right' }, { text: 'working end', at: [65, 36] }, { text: 'ring', at: [50, 6], anchor: 'center' }] },
     { title: 'Through the ring', text: 'Push the end up through the ring from front to back. Bring it down behind the bottom of the ring and let it hang.', frames: [p1a0, p1a, p1b0, p1b], dur: [0.8, 0.6, 0.7, 0.8] },
     { title: 'Through again: the round turn', text: 'Bring the end forward under the ring and up through it a second time, to the left of the first pass. Bring it down behind. Leave both turns slack.', frames: [p2a0, p2a, p2b, p2c, p2d], dur: [0.7, 0.8, 0.6, 0.7, 0.8],
       labels: [{ text: 'round turn', at: [66, 22] }] },
     { title: 'Round the standing part, under both turns', text: 'Bring the end forward and over the standing part to the right. Take it up the right side, then left along the ring UNDER both turns, between the turns and the ring. It comes out on the left.', frames: [p3a, p3b, p3c, p3d, p3e, p3f], dur: [0.8, 0.7, 0.7, 0.6, 0.7, 0.6],
-      labels: [{ text: 'under both turns', at: [33, 47], anchor: 'right' }] },
+      labels: [{ text: 'under', at: [35, 18], anchor: 'right' }, { text: 'both turns', at: [35, 22], anchor: 'right' }] },
     { title: 'Half hitch', text: 'Take the end down the left and over the standing part to the right. Bring it round and back left behind the standing part, then out under its own strand.', frames: [p4a, p4b, p4c, p4d, p4e], dur: [0.8, 0.8, 0.7, 0.7, 0.8],
-      labels: [{ text: 'half hitch', at: [48, 79], anchor: 'center' }] },
+      labels: [{ text: 'half hitch', at: [47, 73.5], anchor: 'center' }] },
     { title: 'Snug it down', text: 'Pull the standing part hard. The turns close up and pinch the tucked end against the ring. Push the half hitch up snug under the first.', frames: [p5], dur: 1.4 },
   ],
 };
