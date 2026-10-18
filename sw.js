@@ -4,8 +4,12 @@ importScripts('sw-assets.js');
 const CACHE = 'knot-archive-' + self.ASSET_VERSION;
 
 self.addEventListener('install', (event) => {
+  // Cache each file on its own so one missing file cannot block the install
+  // (cache.addAll would reject the whole batch).
   event.waitUntil(
-    caches.open(CACHE).then((cache) => cache.addAll(self.ASSETS.map((a) => new Request(a, { cache: 'reload' })))).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then((cache) => Promise.allSettled(self.ASSETS.map((a) => cache.add(new Request(a, { cache: 'reload' })))))
+      .then((results) => { results.forEach((r, i) => { if (r.status === 'rejected') console.warn('not cached:', self.ASSETS[i]); }); })
   );
 });
 

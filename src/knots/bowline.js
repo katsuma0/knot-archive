@@ -17,12 +17,12 @@ const S = resample([P(50, -12, 0.5), P(50, 2, 0.4), P(50, 20, -1), P(50, 30, 0.2
 // The hole. Bottom edge in front (+1): the end passes under it twice. Top
 // edge and exit arm behind (-1): the end passes over them.
 const holeOpen = [E, P(45, 45, 1), P(37, 46, 1), P(30, 40, 0.4), P(28, 31, -0.4), P(32, 23, -1), P(39, 21, -1), P(44, 27, -1), P(50, 38, -1), P(56, 45.5, -0.5)];
-const holeNone = [E, P(50.6, 40, 0.5), P(52, 42, 0), P(54, 44, 0), P(56, 45.5, 0)];
+const holeNone = [E, P(51, 40.5, 0.5), P(52.5, 42.5, 0.2), P(54.2, 44.2, 0), P(56, 45.5, 0)];
 const holeTight = [E, P(46, 44, 1), P(39, 45, 1), P(33, 40, 0.4), P(31, 32, -0.4), P(34, 25, -1), P(40, 23, -1), P(45, 29, -1), P(50, 38, -1), P(56, 45.5, -0.5)];
 const H = (pts) => resample(pts, nH);
 
 // Big loop: never moves.
-const R = resample([P(56, 45.5, 0), P(58, 50, 0), P(60, 58, 0), P(60, 70, 0), P(54, 84, 0), P(44, 86, 0), P(35, 78, 0), P(33, 66, 0), P(36, 57, 0), P(37, 55, 0)], nR);
+const R = resample([P(56, 45.5, 0), P(57.6, 48.2, 0), P(59.2, 54, 0), P(60, 70, 0), P(54, 84, 0), P(44, 86, 0), P(35, 78, 0), P(33, 66, 0), P(36, 57, 0), P(37, 55, 0)], nR);
 
 // The working end is three locked segments: UP through the hole (6 points),
 // TREE round the standing part (6), DOWN through the hole again (6). A
@@ -38,7 +38,7 @@ const W1a = W(resample([P(37, 55, 0), P(37, 50, -1), P(37, 46, -1), P(37, 41, 0.
 const W1 = W(UP, line(P(37, 22, 1), P(37, 6, 1), nTree), line(P(37, 6, 1), P(37, -10, 1), nDown));           // up out of the hole
 const W2a = W(UP, resample([P(37, 22, 1), P(37, 14, 0.5), P(38, 6, -1), P(42, 0, -1), P(46, -3, -1), P(48, -4, -1)], nTree), line(P(48, -4, -1), P(48, -14, -1), nDown)); // dropped behind, still left of the standing part
 const W2b = W(UP, resample([P(37, 22, 1), P(37, 12, 1), P(41, 3, 0.5), P(50, 0, -1), P(58, 4, -1), P(62, 10, -1)], nTree), line(P(62, 10, -1), P(66, 20, -1), nDown)); // behind, now right of the standing part
-const W2 = W(UP, TREE, line(P(50, 20, 1), P(56, 30, 1), nDown));                                                 // over the front of the standing part
+const W2 = W(UP, TREE, line(P(50, 20, 1), P(45, 27, 1), nDown));                                                 // over the front of the standing part, pointing at the hole
 const W3a = W(UP, TREE, resample([P(50, 20, 1), P(46, 26, 1), P(44, 33, 0.4)], nDown));                        // pointing into the hole from the front
 const W3 = W(UP, TREE, DOWN);                                                                                     // down through the hole
 const W4 = W(resample([P(37, 55, 0), P(37, 50, -1), P(37.5, 46, -1), P(38.5, 38, 0), P(38.5, 30, 0.6), P(38.5, 24, 1)], nUp),
