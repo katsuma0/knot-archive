@@ -123,7 +123,7 @@ export default {
     'Tie a food bag, a bucket or a pack to a rail or a branch so it can be let down under control.',
   ],
   pros: [
-    'The round turn holds the load while you tie the hitches, so it can be tied one handed with the rope under strain.',
+    'The round turn holds the load while you tie the hitches, so you can tie it with the rope already pulling.',
     'Does not jam. It unties easily after a heavy or jerking load.',
     'Works on posts, rails, rings and trunks of any size.',
   ],
@@ -149,10 +149,10 @@ export default {
   strands: [{ id: 'a', color: 'green', end: 'working' }],
   steps: [
     { title: 'Start', text: 'Bring the rope to the post from the left and lay it across the front. The long side is the standing part; it goes to the load. The short side with the pale band is the working end.', pose: p0,
-      labels: [{ text: 'standing part', at: [8, 36] }, { text: 'working end', at: [86, 55], anchor: 'right' }] },
+      labels: [{ text: 'standing part', at: [8, 36] }, { text: 'end', at: [86, 55], anchor: 'right' }] },
     { title: 'Round the post', text: 'Take the working end round the back of the post and bring it out on the left, below the standing part. Carry it across the front again and out to the right.', frames: [p1a, p1b, p1c, p1], dur: [0.8, 0.8, 0.8, 0.7] },
     { title: 'Round again: the round turn', text: 'Take the end round the back a second time, a little lower, so the two turns lie side by side. Bring it out on the left, below the standing part, pointing away from the post. The round turn now holds the load.', frames: [p2a, p2], dur: [0.9, 0.9],
-      labels: [{ text: 'round turn', at: [87, 57.5], anchor: 'right' }] },
+      labels: [{ text: 'round', at: [87, 55], anchor: 'right' }, { text: 'turn', at: [87, 60], anchor: 'right' }] },
     { title: 'First half hitch', text: 'Lift the end in front of the standing part and take it up and over. Bring it down behind the standing part and out below, passing under the strand that comes from the post. Pull it down.', frames: [p3a0, p3a, p3b, p3c, p3], dur: [0.7, 0.8, 0.8, 0.8, 0.9],
       labels: [{ text: 'over', at: [26, 48], anchor: 'right' }, { text: 'under', at: [36.5, 58.5], anchor: 'right' }] },
     { title: 'Second half hitch', text: 'Do the same again to the left of the first hitch: up and over the standing part, down behind it, out below and under the strand you just made. Both hitches go the same way.', frames: [p4a0, p4a, p4b, p4c, p4], dur: [0.7, 0.8, 0.8, 0.8, 0.9],

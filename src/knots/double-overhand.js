@@ -145,12 +145,12 @@ export default {
   summary: 'An overhand with one more pass. A bigger, rounder stopper that stays put in slick rope and backs up other knots.',
   uses: [
     'Stopper in each end of a rappel rope so the device cannot run off the end.',
-    'Backup knot on the tail of a bowline or a figure eight follow through, tied snug against the main knot.',
+    'Backup for a bowline or a figure eight follow through: tie the tail round the strand next to it with a double overhand (half a double fisherman\'s) and slide it snug against the main knot.',
     'Each half of a double fisherman\'s bend is a double overhand tied round the other rope.',
     'Stop a cord end pulling through a tarp grommet, a stuff sack channel or a bear bag pulley.',
   ],
   pros: [
-    'Bulkier and more secure than a single overhand. It does not roll or shake out easily.',
+    'Holds better than a single overhand once it is set hard, and it does not roll under load.',
     'Quick to tie in gloves or in the dark: loop, two passes, pull.',
     'Forms a neat barrel that sits square on the rope.',
   ],
@@ -159,6 +159,7 @@ export default {
     'Uses more rope than an overhand. Leave a tail of at least ten rope widths.',
   ],
   warnings: [
+    'Make sure the knot is bigger than the slot in your rappel device. In thin rope tie a triple overhand or a figure eight on a bight instead.',
     'As a rappel stopper, tie one in each rope end and check both before you weight the rope.',
     'A loose double overhand can shake out in stiff rope. Set it hard by pulling both ends apart.',
   ],
@@ -176,7 +177,7 @@ export default {
       labels: [{ text: 'standing part', at: [2, 67] }, { text: 'working end', at: [93, 50], anchor: 'right' }] },
     { title: 'Make a loop', text: 'Swing the working end up, back over to the left and down, then lay it across the top of the standing part. The end crosses over and hangs below.', frames: [p1a, p1b, p1], dur: [1.1, 0.9, 0.9], trailBend: -0.3,
       labels: [{ text: 'end crosses over', at: [29, 71] }] },
-    { title: 'Up through the loop', text: 'Take the end right along the underside of the loop, then push it up through the loop from behind, just right of the crossing.', frames: [p2a, p2b], dur: [0.9, 1.0], trailBend: 0.2,
+    { title: 'Up through the loop', text: 'Take the end to the right, behind the bottom edge of the loop, then push it up through the loop from behind, just right of the crossing.', frames: [p2a, p2b], dur: [0.9, 1.0], trailBend: 0.2,
       labels: [{ text: 'up from behind', at: [39, 72] }] },
     { title: 'Down over the front', text: 'Bring the end down over the front of the bottom edge of the loop. That is one turn round the bottom of the loop.', frames: [p3a, p3b], dur: [0.9, 1.0], trailBend: 0.3,
       labels: [{ text: 'down over the front', at: [52.5, 73] }] },

@@ -6,10 +6,15 @@ import doubleOverhand from './double-overhand.js';
 import ashleysStopper from './ashleys-stopper.js';
 // loops
 import bowline from './bowline.js';
+import figureEightOnABight from './figure-eight-on-a-bight.js';
+import figureEightFollowThrough from './figure-eight-follow-through.js';
+import slipKnot from './slip-knot.js';
 // hitches
 import cloveHitch from './clove-hitch.js';
 import twoHalfHitches from './two-half-hitches.js';
 import roundTurnTwoHalfHitches from './round-turn-two-half-hitches.js';
+// binding
+import squareKnot from './square-knot.js';
 // friction
 import prusik from './prusik.js';
 // fishing
@@ -23,10 +28,15 @@ export const KNOTS = [
   ashleysStopper,
   // loops
   bowline,
+  figureEightOnABight,
+  figureEightFollowThrough,
+  slipKnot,
   // hitches
   cloveHitch,
   twoHalfHitches,
   roundTurnTwoHalfHitches,
+  // binding
+  squareKnot,
   // friction
   prusik,
   // fishing
