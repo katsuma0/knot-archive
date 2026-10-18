@@ -67,15 +67,15 @@ export default {
   difficulty: 1,
   summary: 'A bight of sling or doubled rope choked round a branch, a bar or a harness. The quickest way to fix a sling to something.',
   uses: [
-    'Anchor a sewn sling round a tree trunk or a boulder when it would slide off as a plain loop.',
+    'Anchor a sewn sling round a tree trunk or a rock horn so it cannot slide up or off.',
     'Hang a pack or a food bag from a branch with a loop of webbing.',
     'Fix a sling or a personal anchor to the tie-in points of a harness.',
     'Attach a lanyard, a key cord or a luggage tag to a ring or a strap.',
   ],
-  pros: ['Ties in seconds in a sling that has no free ends.', 'Grips the object and stays where you put it.', 'Easy to undo: open the U and pull the sling back out.'],
+  pros: ['Ties in seconds in a sling that has no free ends.', 'Chokes down on a trunk or a strap and holds its place under a steady downward pull.', 'Easy to undo: open the U and pull the sling back out.'],
   cons: ['Weakens a sling, more so round a thin bar or another sling.', 'Can slide along a smooth bar when the pull comes from the side.'],
   warnings: [
-    'A girth hitch round a thin bar or a carabiner bends the sling sharply and weakens it. For a tree anchor, a basket hitch, with the sling simply passed round and both ends clipped, is stronger.',
+    'A girth hitch round a thin bar or a carabiner bends the sling sharply and weakens it. For a tree anchor, a basket hitch, with the sling simply passed round and both loops clipped, is stronger.',
     'Two slings girth hitched to each other are weaker than either sling alone. Join them with a carabiner instead.',
   ],
   check: 'The two standing parts pass together through the U and come out side by side, flat. From one side you see two parallel strands over the bar; from the other, the U lies across both standing parts as a single collar. If the standing parts leave on opposite sides of the bar, they never went through the U and the sling will pull straight off.',
