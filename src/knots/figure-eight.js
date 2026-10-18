@@ -20,9 +20,9 @@ const LEN = 360; // total rope length in every frame
 // Final segments (loose but complete knot).
 const Sc = [P(-8, 60, 0), P(8, 60, 0.4), P(19, 60, 1), P(27, 59, 0), P(34, 56, -1), P(43, 51, -1)];
 const LOOPc = [P(43, 51, -1), P(52, 44, 0.2), P(62, 37, 1), P(67, 26, 0.7), P(62, 14, 0.2), P(50, 10, 0), P(39, 14, -0.3), P(33, 26, -1), P(33, 35, -1), P(35, 45, 0.2), P(38, 54, 1), P(40, 58, 1)];
-const ROUNDc = [P(40, 58, 1), P(42, 65, 1), P(38, 73, 0.5), P(28, 78, 0), P(19, 72, -1), P(19, 60, -1), P(20, 50, -1), P(21, 44, -0.3)];
-const THRUc = [P(21, 44, -0.3), P(23, 38, 0.5), P(32, 33, 1), P(44, 30, 1), P(52, 30, 0.5), P(57, 31, -0.6)];
-const OUTc = [P(57, 31, -0.6), P(64, 33, -1), P(72, 36, -0.6), P(81, 40, 0), P(90, 45, 0)];
+const ROUNDc = [P(40, 58, 1), P(42, 66, 1), P(39, 74, 0.6), P(31, 79, 0.1), P(23, 76, -0.6), P(19, 68, -1), P(19, 60, -1), P(20, 50, -1), P(21, 44, -0.3)];
+const THRUc = [P(21, 44, -0.3), P(23, 38, 0.5), P(32, 33, 1), P(44, 30, 1), P(50, 30, 0.6), P(55, 31, -0.6)];
+const OUTc = [P(55, 31, -0.6), P(64, 33, -1), P(72, 36, -0.6), P(81, 40, 0), P(90, 45, 0)];
 
 const S = resample(Sc, nS);
 const LOOP = resample(LOOPc, nLoop);
@@ -96,15 +96,15 @@ const p3a = pose(S, LOOP, ROUND,
   line(P(25, 37, 1), P(27, 36, 1), nOut),
 );
 // 3: over the left side, across the middle of the loop, tip dipping behind before the right side
-const p3 = pose(S, LOOP, ROUND, THRU, line(P(57, 31, -0.6), P(59, 32, -1), nOut));
+const p3 = pose(S, LOOP, ROUND, THRU, line(P(55, 31, -0.6), P(57.5, 31.5, -1), nOut));
 // 4a: tip pushed under the right side, just showing on the far side
-const p4a = pose(S, LOOP, ROUND, THRU, resample([P(57, 31, -0.6), P(64, 33, -1), P(70, 35, -1)], nOut));
+const p4a = pose(S, LOOP, ROUND, THRU, resample([P(55, 31, -0.6), P(64, 33, -1), P(70, 35, -1)], nOut));
 // 4: under the right side and out
 const p4 = pose(S, LOOP, ROUND, THRU, OUT);
 
 // 5: snugged down: same topology, pressed toward the line between the
 // standing part and the tail so the two lobes lie side by side.
-const sx = 0.7, sy = 0.5, cx = 43, cy = 46;
+const sx = 0.62, sy = 0.46, cx = 43, cy = 46;
 const sh = (ctrl) => scale(ctrl, sx, sy, cx, cy);
 const S5 = resample([P(-8, 53, 0), P(6, 53, 0), ...sh(Sc).slice(1)], nS);
 const p5 = pose(
@@ -142,7 +142,7 @@ export default {
     { title: 'Start', text: 'Lay the rope out. The long side on the left is the standing part. The short side you will move is the working end, marked with the pale band.', pose: p0,
       labels: [{ text: 'standing part', at: [8, 69] }, { text: 'working end', at: [86, 47], anchor: 'right' }] },
     { title: 'Make a loop', text: 'Swing the working end up, round to the left and back down. Lay it across the top of the standing part so it hangs below. The end sits on top at the crossing.', frames: [p1pre, p1a, p1], dur: [1.1, 1.0, 1.0],
-      labels: [{ text: 'end on top', at: [46, 61] }] },
+      labels: [{ text: 'end on top', at: [47, 62] }] },
     { title: 'Round behind the standing part', text: 'Swing the end to the left, below the standing part, then push it up behind the standing part. It comes out above, on the left of the loop.', frames: [p2a, p2b, p2], dur: [1.0, 1.1, 0.9],
       labels: [{ text: 'behind', at: [4, 49] }] },
     { title: 'Over the left side of the loop', text: 'Bring the end forward and lay it over the left side of the loop, pointing right across the middle.', frames: [p3a, p3], dur: [0.9, 1.4],
