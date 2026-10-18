@@ -117,8 +117,8 @@ button { font: inherit; color: inherit; }
 @media (min-width: 860px) { .player { grid-template-columns: minmax(0, 560px) 1fr; align-items: start; } }
 .stage { position: relative; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); background: var(--bg-2); }
 .stage canvas { display: block; width: 100%; aspect-ratio: 1; touch-action: manipulation; cursor: pointer; }
-.stage .tap-hint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 76px; height: 76px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: flex; align-items: center; justify-content: center; pointer-events: none; opacity: 0; transition: opacity .2s; }
-.stage .tap-hint svg { width: 36px; height: 36px; }
+.stage .tap-hint { position: absolute; right: 10px; bottom: 10px; height: 40px; padding: 0 14px 0 8px; border-radius: 999px; background: rgba(0,0,0,.62); color: #fff; font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 4px; pointer-events: none; opacity: 0; transition: opacity .2s; }
+.stage .tap-hint svg { width: 22px; height: 22px; }
 .stage.paused .tap-hint { opacity: 1; }
 .stage .step-pill { position: absolute; left: 10px; top: 10px; background: rgba(0,0,0,.6); color: #fff; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 999px; pointer-events: none; }
 .caption { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-height: 96px; }
@@ -170,3 +170,9 @@ button { font: inherit; color: inherit; }
 kbd { font: 12px ui-monospace, monospace; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 5px; }
 .hint { color: var(--ink-2); font-size: 13px; margin: 8px 0 0; }
 @media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+
+.toast { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 10px 14px; border-radius: 12px; display: flex; gap: 12px; align-items: center; box-shadow: var(--shadow); z-index: 30; font-size: 14px; max-width: calc(100vw - 32px); }
+.toast button { background: var(--accent); color: var(--accent-ink); border: none; border-radius: 8px; padding: 8px 12px; font-weight: 700; cursor: pointer; min-height: 40px; }
+.how { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; margin: 12px 0 16px; }
+.how div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; font-size: 14px; color: var(--ink-2); }
+.how b { color: var(--ink); display: block; margin-bottom: 2px; }

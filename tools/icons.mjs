@@ -1,5 +1,5 @@
 // icons.mjs: rasterise icons/icon.svg to the PNG sizes the manifest needs.
-import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import { chromium } from './pw.mjs';
 import { readFileSync } from 'node:fs';
 const svg = readFileSync(new URL('../icons/icon.svg', import.meta.url), 'utf8');
 const browser = await chromium.launch();

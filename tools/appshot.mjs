@@ -1,6 +1,6 @@
 // appshot.mjs: screenshot the app. usage: node tools/appshot.mjs out.png [--route '#/knot/bowline'] [--width 390] [--height 844] [--dark] [--full] [--t 3.2]
 import { startServer } from './shot.mjs';
-import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import { chromium } from './pw.mjs';
 const args = process.argv.slice(2);
 const out = args[0];
 const opt = (n, d) => { const i = args.indexOf('--' + n); return i >= 0 ? args[i + 1] : d; };

@@ -47,7 +47,7 @@ export class Player {
           <div class="stage paused">
             <canvas aria-label="Animation of tying the ${k.name}" role="img"></canvas>
             <div class="step-pill" aria-hidden="true"></div>
-            <div class="tap-hint">${ICONS.play}</div>
+            <div class="tap-hint" aria-hidden="true">${ICONS.play}<span>Play</span></div>
           </div>
           <div class="scrub">
             <input type="range" min="0" max="1000" value="0" aria-label="Scrub through the animation">
@@ -101,6 +101,16 @@ export class Player {
       else if (b.dataset.act === 'mirror') this.setMirror(!this.mirror);
     });
     this.canvas.addEventListener('click', () => this.toggle());
+    // swipe left/right on the stage for next/previous step (phones)
+    let sx = null, sy = null;
+    this.stage.addEventListener('touchstart', (e) => { sx = e.touches[0].clientX; sy = e.touches[0].clientY; }, { passive: true });
+    this.stage.addEventListener('touchend', (e) => {
+      if (sx == null) return;
+      const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+      sx = null;
+      if (Math.abs(dx) > 48 && Math.abs(dx) > 2 * Math.abs(dy)) { e.preventDefault(); if (dx < 0) this.next(); else this.prev(); }
+    });
+    this.hint = this.root.querySelector('.tap-hint span');
     this.range.addEventListener('input', () => { this.pause(); this.t = (+this.range.value / 1000) * this.timeline.total; this.pauseAt = null; this.dirty = true; });
   }
 
@@ -180,6 +190,11 @@ export class Player {
   pause() {
     this.playing = false;
     this.stage.classList.add('paused');
+    const cur = this.stepAt(this.t);
+    const st = this.timeline.steps[cur];
+    const atEnd = this.t >= this.timeline.total - 1e-3;
+    const stepDone = this.stepMode && this.t >= st.tweenEnd - 1e-3 && cur < this.timeline.steps.length - 1;
+    if (this.hint) this.hint.textContent = atEnd ? 'Replay' : stepDone ? 'Next step' : 'Play';
     this.playBtn.innerHTML = `${ICONS.play}<span>Play</span>`;
     this.playBtn.setAttribute('aria-label', 'Play');
   }

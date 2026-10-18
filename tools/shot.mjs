@@ -1,7 +1,7 @@
 // shot.mjs: render a raw scene (JSON file) or a knot module to PNG via headless Chromium.
 // usage: node tools/shot.mjs scene scene.json out.png
 //        node tools/shot.mjs knot src/knots/bowline.js out.png --step 2 | --t 3.5 [--size 800] [--theme dark] [--mirror]
-import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs';
+import { chromium } from './pw.mjs';
 import { readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -48,6 +48,10 @@ function renderHome() {
       <h1>Knots for outside</h1>
       <p>${KNOTS.length} knots, each one animated from a model of the rope so every crossing is exact. Everything is stored on your phone once it has loaded, so it works with no signal.</p>
     </div>
+    <div class="how">
+      <div><b>Pick a knot</b>It pauses after every step so you can copy it with real cord. Left handed: press Mirror.</div>
+      <div><b>Keep it for the trip</b>Add this page to your home screen (iPhone: Share, Add to Home Screen. Android: menu, Install app). It opens with no signal.</div>
+    </div>
     <div class="tools">
       <input class="search" type="search" placeholder="Search: bowline, tarp, tie to a tree, join two ropes" value="${esc(state.q)}" aria-label="Search knots">
       <div class="chips" role="group" aria-label="Category">
@@ -147,9 +151,24 @@ if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   navigator.serviceWorker.register('sw.js').then((reg) => {
     const badge = document.getElementById('offline-badge');
     if (reg.active) badge.hidden = false;
+    const offerUpdate = (worker) => {
+      if (document.querySelector('.toast')) return;
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.setAttribute('role', 'status');
+      t.innerHTML = '<span>New knots and fixes are ready.</span><button type="button">Reload</button>';
+      t.querySelector('button').addEventListener('click', () => { worker.postMessage('skipWaiting'); });
+      document.body.appendChild(t);
+    };
+    if (reg.waiting && navigator.serviceWorker.controller) offerUpdate(reg.waiting);
     reg.addEventListener('updatefound', () => {
       const nw = reg.installing;
-      nw && nw.addEventListener('statechange', () => { if (nw.state === 'activated') badge.hidden = false; });
+      if (!nw) return;
+      nw.addEventListener('statechange', () => {
+        if (nw.state === 'installed') { badge.hidden = false; if (navigator.serviceWorker.controller) offerUpdate(nw); }
+      });
     });
+    let reloading = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (reloading) return; reloading = true; location.reload(); });
   }).catch((e) => console.warn('offline cache unavailable', e));
 }
