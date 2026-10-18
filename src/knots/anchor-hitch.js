@@ -32,8 +32,8 @@ const at = (p, z) => P(p[0], p[1], z);
 const SP = R([P(62, 100, 0), P(62, 76, 0), P(61.8, 58, 0), P(61.3, 46, 0), P(60.5, 38, 0.5)], nS);
 const A1 = pol(67, 6, 0), A2 = pol(113, 6, 0);
 const f1 = (za) => R([P(60.5, 38, 0.5), pol(54, 15, 0.9), pol(61, 10, 1), pol(64, 8, 0.8), at(A1, za)], nF);
-const b1 = (lo) => R([A1, pol(72, 8, -0.8), pol(75, 10, -1), pol(78, 15, -0.9), ...(lo ? [P(52.8, 40.5, -0.6), P(51.8, 43, -0.3), P(50, 44.3, 0)] : [pol(85, 17.5, -0.5), pol(90, 19, 0)])], nB);
-const f2 = (lo, za) => R([...(lo ? [P(50, 44.3, 0), P(48.2, 43, 0.3), P(47.2, 40.5, 0.6)] : [pol(90, 19, 0), pol(95, 17.5, 0.5)]), pol(102, 15, 0.9), pol(105, 10, 1), pol(108, 8, 0.8), at(A2, za)], nB);
+const b1 = (lo) => R([A1, pol(72, 8, -0.8), pol(75, 10, -1), pol(78, 15, -0.9), ...(lo ? [P(52.9, 40, -0.6), ...arc(50, 41.3, 2.9, 0, 90, 4, [-0.4, 0])] : [pol(85, 17.5, -0.5), pol(90, 19, 0)])], nB);
+const f2 = (lo, za) => R([...(lo ? [...arc(50, 41.3, 2.9, 90, 180, 4, [0, 0.4]), P(47.1, 40, 0.6)] : [pol(90, 19, 0), pol(95, 17.5, 0.5)]), pol(102, 15, 0.9), pol(105, 10, 1), pol(108, 8, 0.8), at(A2, za)], nB);
 const b2 = (lo) => R([A2, pol(116, 8, -0.8), pol(119, 10, -1), pol(126, 15, -0.9), lo ? P(38.5, 40, -0.5) : P(39.5, 38, -0.4)], nF);
 const F1 = f1(0), B1L = b1(true), B1S = b1(false), F2L = f2(true, 0), F2S = f2(false, 0), B2L = b2(true), B2S = b2(false);
 
@@ -67,9 +67,9 @@ const p0 = pose(SP, line(P(60.5, 38, 0.5), P(58, 34.8, 1), nF));
 const p1a0 = pose(SP, f1(0.7), line(at(A1, 0.7), P(51.5, 22, 0.2), nB));
 const p1a = pose(SP, F1, line(A1, P(50.5, 8, -1), nB));
 const p1b0 = pose(SP, F1, line(A1, P(34, 24, -1), nB));
-const p1b = pose(SP, F1, B1L, line(P(50, 44.3, 0), P(50.5, 57, -0.3), nB));
+const p1b = pose(SP, F1, B1L, R([P(50, 44.2, 0), P(48.6, 45.5, -0.1), P(48.5, 57, -0.3)], nB));
 // 2: forward under the ring, up through it again to the left, down behind: the round turn
-const p2a0 = pose(SP, F1, B1L, line(P(50, 44.3, 0), P(38, 47, 1), nB));
+const p2a0 = pose(SP, F1, B1L, R([P(50, 44.2, 0), P(48.6, 44.8, 0.3), P(38, 47, 1)], nB));
 const p2a = pose(SP, F1, B1L, f2(true, 0.7), line(at(A2, 0.7), P(46.5, 22, 0.2), nF));
 const p2b = pose(SP, F1, B1L, F2L, line(A2, P(47, 8, -1), nF));
 const p2c = pose(SP, F1, B1L, F2L, line(A2, P(32, 30, -1), nF));
