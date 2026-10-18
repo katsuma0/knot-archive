@@ -535,9 +535,44 @@ export function propOutlines(prop) {
     case 'bar': return [capsulePath(prop.x1, prop.y1, prop.x2, prop.y2, prop.r)];
     case 'ring': return [circlePath(prop.cx, prop.cy, prop.r + prop.t / 2), circlePath(prop.cx, prop.cy, prop.r - prop.t / 2)];
     case 'carabiner': return carabinerOutlines(prop);
-    case 'hook': return [circlePath(prop.cx, prop.cy, prop.r + prop.t / 2), circlePath(prop.cx, prop.cy, Math.max(0.3, prop.r - prop.t / 2))];
+    case 'hook': return [circlePath(prop.cx, prop.cy, prop.r + prop.t / 2), circlePath(prop.cx, prop.cy, Math.max(0.3, prop.r - prop.t / 2)), offsetOutline(hookCenterline(prop), prop.t / 2)];
     default: return [];
   }
+}
+
+// Centre line of a fishing hook below its eye: shank, bend, point.
+export function hookCenterline(prop) {
+  const { cx, cy, r, t, len = 40 } = prop;
+  const d = prop.dir || [0.25, 1];
+  const dl = Math.hypot(d[0], d[1]) || 1, ux = d[0] / dl, uy = d[1] / dl, nx = -uy, ny = ux;
+  const sx = cx + ux * (r + t / 2), sy = cy + uy * (r + t / 2);
+  const ex = sx + ux * len, ey = sy + uy * len;
+  const bendR = len * 0.28;
+  const pts = [];
+  const shankEnd = [ex - ux * bendR, ey - uy * bendR];
+  for (let i = 0; i <= 8; i++) { const u = i / 8; pts.push([sx + (shankEnd[0] - sx) * u, sy + (shankEnd[1] - sy) * u]); }
+  const bcx = shankEnd[0] + nx * bendR, bcy = shankEnd[1] + ny * bendR;
+  const a0 = Math.atan2(-ny, -nx);
+  for (let i = 1; i <= 16; i++) { const a = a0 + (Math.PI * i) / 16; pts.push([bcx + bendR * Math.cos(a), bcy + bendR * Math.sin(a)]); }
+  const last = pts[pts.length - 1];
+  const tip = [last[0] - ux * bendR * 1.3, last[1] - uy * bendR * 1.3];
+  for (let i = 1; i <= 4; i++) { const u = i / 4; pts.push([last[0] + (tip[0] - last[0]) * u, last[1] + (tip[1] - last[1]) * u]); }
+  return { pts, ux, uy, nx, ny, bendR, tip };
+}
+
+// Closed outline of a polyline thickened by h on each side (round-ish ends).
+function offsetOutline(cl, h) {
+  const P = cl.pts;
+  const norm = (i) => {
+    const a = P[Math.max(0, i - 1)], b = P[Math.min(P.length - 1, i + 1)];
+    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1;
+    return [-dy / L, dx / L];
+  };
+  const left = P.map((p, i) => { const n = norm(i); return [p[0] + n[0] * h, p[1] + n[1] * h]; });
+  const right = P.map((p, i) => { const n = norm(i); return [p[0] - n[0] * h, p[1] - n[1] * h]; }).reverse();
+  const ring = [...left, ...right, left[0]];
+  let s = 0;
+  return ring.map((p, i) => { if (i) s += Math.hypot(p[0] - ring[i - 1][0], p[1] - ring[i - 1][1]); return { x: p[0], y: p[1], z: 0, s }; });
 }
 
 function carabinerShape(prop) {
@@ -656,31 +691,19 @@ export function paintProp(ctx, prop, style) {
       return;
     }
     case 'hook': {
-      // Fishing hook: eye at (cx, cy), shank running down-right by `len`, then the bend and point curling back.
-      const { cx, cy, r, t, len = 40 } = prop;
+      // Fishing hook: eye at (cx, cy), shank running along `dir` by `len`, then the bend and point curling back.
+      const { cx, cy, r, t } = prop;
       const base = prop.color || '#6f7780';
-      const d = prop.dir || [0.25, 1];
-      const dl = Math.hypot(d[0], d[1]) || 1, ux = d[0] / dl, uy = d[1] / dl, nx = -uy, ny = ux;
-      const sx = cx + ux * (r + t / 2), sy = cy + uy * (r + t / 2);
-      const ex = sx + ux * len, ey = sy + uy * len;
-      const bendR = len * 0.28;
+      const cl = hookCenterline(prop);
       ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-      const path = () => {
-        ctx.beginPath();
-        ctx.moveTo(sx, sy); ctx.lineTo(ex - ux * bendR, ey - uy * bendR);
-        // bend: half circle to the side opposite the eye's wrap direction
-        const bcx = ex - ux * bendR + nx * bendR, bcy = ey - uy * bendR + ny * bendR;
-        const a0 = Math.atan2(-ny, -nx), a1 = a0 + Math.PI;
-        ctx.arc(bcx, bcy, bendR, a0, a1, false);
-        ctx.lineTo(bcx + nx * bendR - ux * bendR * 1.3, bcy + ny * bendR - uy * bendR * 1.3);
-      };
+      const path = () => { ctx.beginPath(); ctx.moveTo(cl.pts[0][0], cl.pts[0][1]); for (const q of cl.pts.slice(1)) ctx.lineTo(q[0], q[1]); };
       path(); ctx.strokeStyle = style.outline || '#1e1812'; ctx.lineWidth = t + (style.propOutline ?? 0.7); ctx.stroke();
       path(); ctx.strokeStyle = base; ctx.lineWidth = t; ctx.stroke();
-      // barb
+      // barb, a short spur off the point
+      const tp = cl.tip;
       ctx.beginPath();
-      const bcx = ex - ux * bendR + nx * bendR, bcy = ey - uy * bendR + ny * bendR;
-      const px = bcx + nx * bendR - ux * bendR * 1.3, py = bcy + ny * bendR - uy * bendR * 1.3;
-      ctx.moveTo(px + ux * bendR * 0.5, py + uy * bendR * 0.5); ctx.lineTo(px + ux * bendR * 0.5 + nx * t * 1.2, py + uy * bendR * 0.5 + ny * t * 1.2);
+      ctx.moveTo(tp[0] + cl.ux * cl.bendR * 0.5, tp[1] + cl.uy * cl.bendR * 0.5);
+      ctx.lineTo(tp[0] + cl.ux * cl.bendR * 0.5 + cl.nx * t * 1.2, tp[1] + cl.uy * cl.bendR * 0.5 + cl.ny * t * 1.2);
       ctx.strokeStyle = base; ctx.lineWidth = t * 0.7; ctx.stroke();
       // eye
       ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2);

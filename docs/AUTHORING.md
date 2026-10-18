@@ -68,7 +68,7 @@ Fields of a step:
 - `labels`: `[{ text, at: [x, y], anchor: 'left'|'center'|'right', size }]`, shown at rest. Keep labels off the rope.
 - `arrows`: `[{ from: [x, y], to: [x, y], bend: 0.3 }]`, optional hand-drawn hints. Usually the automatic tip trail is enough.
 - `trailBend`: curve the automatic arrow that follows the working end (positive bends one way, negative the other). `trail: false` turns it off for a step.
-- `view`: a zoom box for this step; the camera glides between steps.
+- `view`: a zoom box for this step; the camera glides between steps. A step without `view` keeps the previous step's zoom, so set `view` again on the step that zooms back out.
 - `props`: override the knot's props for this step (static only).
 
 Strands: `{ id, color, end, width, flat, tipColor }`. `color` is a name from `ROPE_COLORS` in `src/scene.js` (orange, red, blue, green, yellow, purple, teal, navy, olive, sand, white, grey, black) or a hex string. `end: 'working'` paints a pale band on the last point so the reader can track the end; use `end: 'none'` for a strand with no free end in view (a bight, the main rope a prusik grips). `width` overrides `ropeWidth` for that strand (a thin cord round a thick rope). `flat: true` draws webbing.
@@ -118,6 +118,8 @@ Keep every frame tween short and single-purpose: lift, move, drop. Three frames 
 `line(a, b, n)` keeps the z of its end points when you omit the z argument. Labels are about 1.6 world units per character at the default size, so a long label needs `size` or a second label. Keep the file compact: a knot rarely needs more than 250 lines, and never paste a whole lint JSON into your reasoning; read `--verbose` output instead.
 
 ## 6. Props and wraps
+
+Rope must never cut through a prop, during a tween as much as at rest. The lint reports "rope passes through a prop" when a rope crosses a prop steeply at the prop's own depth (z within 0.2 of the prop's z, which is 0 unless you set it). Give the rope a clear z (+1 in front, -1 behind) wherever it overlaps a prop, and add an in-between frame that takes it round the prop rather than through it. The hook's shank, bend and point count as solid, not only its eye.
 
 Props: `{ type: 'post', x, y1, y2, r, color }` vertical pole; `{ type: 'bar', x1, y1, x2, y2, r }` pole at any angle; `{ type: 'ring', cx, cy, r, t }` ring (t = thickness); `{ type: 'carabiner', cx, cy, w, h, t }`; `{ type: 'hook', cx, cy, r, t, len, dir }` fishing hook with its eye at (cx, cy). The eye of a ring, carabiner or hook is a hole: rope through it goes from z = +1 (over the near rim) to z = -1 (under the far rim) inside the hole.
 
