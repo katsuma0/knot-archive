@@ -104,7 +104,7 @@ export default {
       labels: [{ text: 'behind both', at: [24, 50], anchor: 'right' }] },
     { title: 'Tuck under itself', text: 'Bring the end up over the bottom part, then tuck it under the thin rope where that crosses the top of the bight. Do not take it back through the bight.', frames: [p3a, p3b, p3], dur: [0.9, 0.8, 1.2],
       labels: [{ text: 'under itself', at: [63, 31] }] },
-    { title: 'Pull it tight', text: 'Hold the thick standing part and pull the thin standing part to the right. The thin rope closes round the neck of the bight. Both short ends sit on the top side.', frames: [p4], dur: 1.4,
-      labels: [{ text: 'both ends on top', at: [64, 22] }, { text: 'short end', at: [4, 36] }] },
+    { title: 'Pull it tight', text: 'Hold the thick standing part and pull the thin standing part to the right. The thin rope closes round the neck of the bight. Both short ends sit on the top side.', frames: [p4], dur: 1.4, view: { x: 12, y: 8, w: 80, h: 80 },
+      labels: [{ text: 'both ends on top', at: [55, 19], anchor: 'right' }, { text: 'short end', at: [15, 37] }] },
   ],
 };
