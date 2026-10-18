@@ -1,0 +1,200 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>harness</title>
+<style>html,body{margin:0;background:#888}canvas{display:block}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+import { buildTimeline, poseAt, lerpPose } from '../src/anim.js';
+import { paintFrame, THEMES } from '../src/scene.js';
+import { paintScene, sampleSpline } from '../src/rope.js';
+const canvas = document.getElementById('c');
+const ctx2 = canvas.getContext('2d');
+window.__ready = true;
+
+async function load(modPath) {
+  const mod = await import(modPath + '?v=' + Math.random());
+  return mod.default;
+}
+
+// Render a knot module at time t (seconds) or at a step index (end of step).
+window.renderKnot = async (modPath, { t = null, step = null, size = 800, theme = 'light', mirror = false } = {}) => {
+  const knot = await load(modPath);
+  const tl = buildTimeline(knot);
+  let time = t;
+  if (step !== null) time = tl.steps[step].tweenEnd + 0.01;
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const state = poseAt(tl, time);
+  const res = paintFrame(ctx, knot, state, { theme, mirror, cw: size, ch: size, dpr: 1 });
+  return { total: tl.total, steps: tl.steps, step: state.step, frame: state.frame, crossings: res.crossings.length, conflicts: res.conflicts.length, cycles: res.cycles };
+};
+
+window.renderScene = (scene, size = 600, style = {}) => {
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = style.bg || '#f5f0e6'; ctx.fillRect(0, 0, size, size);
+  const s = size / 100;
+  ctx.setTransform(s, 0, 0, s, 0, 0);
+  const res = paintScene(ctx, scene, { texture: true, ...style });
+  return { crossings: res.crossings.length, pieces: res.pieces.length, conflicts: res.conflicts.length, cycles: res.cycles, order: res.order.map(n => n.kind === 'prop' ? 'prop' : `${n.ci}:${n.s0.toFixed(1)}-${n.s1.toFixed(1)}`) };
+};
+
+// Contact sheet: for every step, `mids` frames inside each tween plus the
+// resting pose at the end of the step.
+window.renderSheet = async (modPath, { size = 400, mids = 2, theme = 'light', mirror = false, cols = 4 } = {}) => {
+  const knot = await load(modPath);
+  const tl = buildTimeline(knot);
+  const tiles = [];
+  for (const seg of tl.segments) {
+    if (seg.kind === 'tween') for (let k = 1; k <= mids; k++) tiles.push({ t: seg.t0 + (seg.t1 - seg.t0) * (k / (mids + 1)), label: `step ${seg.step} · frame ${seg.frame} · ${Math.round(100 * k / (mids + 1))}%` });
+    else tiles.push({ t: seg.t0 + 0.01, label: `step ${seg.step} · rest` + (seg.step === 0 ? ' (start)' : '') });
+  }
+  const rows = Math.ceil(tiles.length / cols);
+  canvas.width = cols * size; canvas.height = rows * size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#777'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const off = document.createElement('canvas');
+  off.width = size; off.height = size;
+  const octx = off.getContext('2d');
+  tiles.forEach((tile, i) => {
+    const state = poseAt(tl, tile.t);
+    paintFrame(octx, knot, state, { theme, mirror, cw: size, ch: size, dpr: 1 });
+    const x = (i % cols) * size, y = Math.floor(i / cols) * size;
+    ctx.drawImage(off, x, y);
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.font = `${Math.round(size * 0.045)}px system-ui, sans-serif`;
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    const tw = ctx.measureText(tile.label).width + 12;
+    ctx.fillRect(x, y, tw, size * 0.07);
+    ctx.fillStyle = '#fff';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(tile.label, x + 6, y + size * 0.035);
+    ctx.strokeStyle = '#444'; ctx.lineWidth = 2; ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
+    ctx.restore();
+  });
+  return { tiles: tiles.length, total: tl.total };
+};
+
+// Lint: schema checks, topology per step, pass-through detection along the
+// whole timeline, length jumps and kinks.
+window.lintKnot = async (modPath) => {
+  const errors = [], warnings = [];
+  const knot = await load(modPath);
+  const req = ['id', 'name', 'category', 'summary', 'strands', 'steps'];
+  for (const k of req) if (knot[k] == null) errors.push(`missing field "${k}"`);
+  if (!Array.isArray(knot.uses) || !knot.uses.length) warnings.push('no "uses" list');
+  if (!knot.check) warnings.push('no "check" text (how to tell the knot is tied right)');
+  if (!knot.difficulty) warnings.push('no difficulty (1-5)');
+  let tl;
+  try { tl = buildTimeline(knot); } catch (e) { errors.push('timeline: ' + e.message); return { id: knot.id, errors, warnings, steps: [], stepCount: knot.steps ? knot.steps.length : 0, total: 0 }; }
+  const view = knot.view || { x: 0, y: 0, w: 100, h: 100 };
+  const w = knot.ropeWidth || 4;
+  const ids = knot.strands.map((s) => s.id);
+  const stepsOut = [];
+  const size = 300;
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  knot.steps.forEach((step, si) => {
+    if (!step.title) warnings.push(`step ${si}: no title`);
+    if (!step.text) warnings.push(`step ${si}: no text`);
+    const st = tl.steps[si];
+    const state = poseAt(tl, st.tweenEnd + 0.01);
+    const res = paintFrame(ctx, knot, state, { cw: size, ch: size, dpr: 1 });
+    const lengths = {};
+    let kinks = 0;
+    const props = step.props || knot.props || [];
+    const nearProp = (p) => props.some((pr) => {
+      if (pr.type === 'post') return Math.abs(p.x - pr.x) < pr.r + w * 1.5 && p.y > pr.y1 - w && p.y < pr.y2 + w;
+      if (pr.type === 'bar') { const L = Math.hypot(pr.x2 - pr.x1, pr.y2 - pr.y1) || 1; const t = ((p.x - pr.x1) * (pr.x2 - pr.x1) + (p.y - pr.y1) * (pr.y2 - pr.y1)) / (L * L); const cx = pr.x1 + (pr.x2 - pr.x1) * Math.max(0, Math.min(1, t)), cy = pr.y1 + (pr.y2 - pr.y1) * Math.max(0, Math.min(1, t)); return Math.hypot(p.x - cx, p.y - cy) < pr.r + w * 1.5; }
+      if (pr.type === 'ring') return Math.abs(Math.hypot(p.x - pr.cx, p.y - pr.cy) - pr.r) < pr.t + w * 1.5;
+      if (pr.type === 'carabiner') return Math.abs(p.x - pr.cx) < (pr.w || 14) / 2 + w * 1.5 && Math.abs(p.y - pr.cy) < (pr.h || 24) / 2 + w * 1.5;
+      return false;
+    });
+    for (const id of ids) {
+      const S = sampleSpline(state.pose[id]);
+      lengths[id] = S[S.length - 1].s;
+      // kink check: radius of curvature from three consecutive samples
+      for (let i = 2; i < S.length; i++) {
+        const a = S[i - 2], b = S[i - 1], c = S[i];
+        const ab = Math.hypot(b.x - a.x, b.y - a.y), bc = Math.hypot(c.x - b.x, c.y - b.y), ac = Math.hypot(c.x - a.x, c.y - a.y);
+        const area2 = Math.abs((b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y));
+        const R = area2 < 1e-9 ? 1e9 : (ab * bc * ac) / (2 * area2);
+        let tight = R < w * 0.5;
+        if (tight && nearProp(b)) tight = false; // the side view of a wrap makes a hairpin at the post's edge; expected
+        S[i].tight = tight;
+        if (tight && S[i - 1].tight) { kinks++; if (kinks === 1) warnings.push(`step ${si}: strand ${id} bends tighter than the rope width near (${b.x.toFixed(0)}, ${b.y.toFixed(0)}); the rope would kink. Widen the curve.`); }
+      }
+      // points far outside the view
+      // points far outside the view, ignoring the off-screen standing end
+      const pts = state.pose[id];
+      const inView = (p) => p[0] >= view.x - 25 && p[0] <= view.x + view.w + 25 && p[1] >= view.y - 25 && p[1] <= view.y + view.h + 25;
+      let first = pts.findIndex(inView);
+      if (first < 0) first = pts.length;
+      const outside = pts.slice(first).filter((p) => !inView(p)).length;
+      if (outside > 1) warnings.push(`step ${si}: strand ${id} has ${outside} points far outside the view box after it enters the frame`);
+    }
+    const tangential = res.crossings.filter((c) => c.angle < 0.35).length;
+    const ambiguous = res.crossings.filter((c) => Math.abs(c.a.z - c.b.z) < 0.3).length;
+    if (res.conflicts.length) warnings.push(`step ${si}: ${res.conflicts.length} crossing conflict(s) (over and under too close on one strand) near ${res.conflicts.map((c) => `(${c.x.toFixed(0)}, ${c.y.toFixed(0)})`).join(' ')}. Spread the crossings apart.`);
+    if (res.cycles) warnings.push(`step ${si}: ${res.cycles} depth cycle(s); some crossing may paint wrong. Check z values.`);
+    if (ambiguous) warnings.push(`step ${si}: ${ambiguous} crossing(s) where both strands have nearly the same z near ${res.crossings.filter((c) => Math.abs(c.a.z - c.b.z) < 0.3).map((c) => `(${c.x.toFixed(0)}, ${c.y.toFixed(0)})`).join(' ')}. Set z to +1 on one and -1 on the other.`);
+    if (tangential) warnings.push(`step ${si}: ${tangential} crossing(s) at a very shallow angle; they read badly. Make the ropes cross closer to 90 degrees.`);
+    const overlaps = res.contacts.filter((c) => Math.abs(c.a.z - c.b.z) < 0.15).length;
+    if (overlaps > 6) warnings.push(`step ${si}: ropes overlap side by side with equal z in ${overlaps} places; nudge one apart or give it a different z.`);
+    stepsOut.push({ index: si, title: step.title, crossings: res.crossings.length, conflicts: res.conflicts.length, cycles: res.cycles, lengths, tangential, ambiguous, kinks,
+      crossings_list: res.crossings.map((c, i) => `#${i + 1} at (${c.x.toFixed(0)},${c.y.toFixed(0)}): ${name(c.a)} ${c.a.z > c.b.z ? 'over' : 'under'} ${name(c.b)}`),
+      sequence: sequence(res.crossings) });
+    function name(e) { return ids[e.ci] != null ? `${ids[e.ci]}@${e.s.toFixed(0)}` : 'prop'; }
+    // Along each strand from the standing end: O = this strand is on top, U = underneath.
+    function sequence(cr) {
+      const out = {};
+      ids.forEach((id, ci) => {
+        const ev = [];
+        cr.forEach((c, i) => { for (const side of ['a', 'b']) { const e = c[side], o = c[side === 'a' ? 'b' : 'a']; if (e.ci === ci) ev.push({ s: e.s, t: (e.z > o.z ? 'O' : 'U') + (i + 1) }); } });
+        out[id] = ev.sort((p, q) => p.s - q.s).map((e) => e.t).join(' ');
+      });
+      return out;
+    }
+  });
+  // length jumps between consecutive frames
+  let prevLen = null, prevStep = null;
+  tl.segments.forEach((seg) => {
+    if (seg.kind !== 'tween') return;
+    for (const id of ids) {
+      const a = sampleSpline(seg.from[id]), b = sampleSpline(seg.to[id]);
+      const la = a[a.length - 1].s, lb = b[b.length - 1].s;
+      if (Math.abs(lb - la) / Math.max(la, lb) > 0.15) warnings.push(`step ${seg.step} frame ${seg.frame}: strand ${id} length jumps ${la.toFixed(0)} -> ${lb.toFixed(0)}; the rope will look like it stretches. Keep length steady (move the off-screen standing end instead).`);
+    }
+  });
+  // pass-through detection: a crossing whose over/under flips while it persists
+  const dt = 1 / 24;
+  let prev = null;
+  const flips = [];
+  const canon = (c) => {
+    const [p, q] = (c.a.ci < c.b.ci || (c.a.ci === c.b.ci && c.a.s < c.b.s)) ? [c.a, c.b] : [c.b, c.a];
+    return { p, q, over: p.z > q.z, x: c.x, y: c.y };
+  };
+  for (let t = 0; t < tl.total; t += dt) {
+    const state = poseAt(tl, t);
+    if (!state.tween) { prev = null; continue; }
+    const res = paintFrame(ctx, knot, state, { cw: size, ch: size, dpr: 1 });
+    const cur = res.crossings.filter((c) => c.a.ci < ids.length && c.b.ci < ids.length).map(canon);
+    if (prev) {
+      for (const c of cur) {
+        const near = (d, tol) => d.p.ci === c.p.ci && d.q.ci === c.q.ci && Math.abs(d.p.s - c.p.s) < tol && Math.abs(d.q.s - c.q.s) < tol;
+        const same = prev.find((d) => near(d, 1.5 * w) && d.over === c.over);
+        if (same) continue;
+        const m = prev.find((d) => near(d, 0.75 * w) && d.over !== c.over);
+        if (m) flips.push({ t: +t.toFixed(2), step: state.step, frame: state.frame, x: +c.x.toFixed(0), y: +c.y.toFixed(0) });
+      }
+    }
+    prev = cur;
+  }
+  if (flips.length) {
+    const byStep = {};
+    for (const f of flips) { const k = `${f.step}/${f.frame}`; (byStep[k] = byStep[k] || []).push(f); }
+    for (const [k, list] of Object.entries(byStep)) warnings.push(`step ${k.split('/')[0]} frame ${k.split('/')[1]}: rope passes through itself ${list.length} time(s) during the tween, e.g. t=${list[0].t}s near (${list[0].x}, ${list[0].y}). Add an in-between frame that lifts the end over, or fix z on the moving part.`);
+  }
+  return { id: knot.id, errors, warnings, steps: stepsOut, stepCount: knot.steps.length, total: tl.total };
+};
+</script></body></html>

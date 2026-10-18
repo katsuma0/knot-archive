@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Knot Archive</title>
+<meta name="description" content="Outdoor knots tied step by step with animations. Works offline.">
+<meta name="theme-color" content="#f5f0e6" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161a1d" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <a class="brand" href="#/" aria-label="Knot Archive home">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 18c6-10 12-10 16-4s8 6 8-2" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><path d="M4 26c6-10 12-10 16-4s8 6 8-2" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" opacity=".45"/></svg>
+    <span>Knot Archive</span>
+  </a>
+  <div class="top-actions">
+    <span id="offline-badge" class="badge" hidden title="All knots are stored on this device">offline ready</span>
+    <button id="theme-toggle" class="icon-btn" aria-label="Toggle dark mode" title="Dark / light">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9c0-.5 0-1-.1-1.4A6 6 0 0 1 13.4 3.1 9 9 0 0 0 12 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</header>
+<main id="main" class="main" tabindex="-1"></main>
+<footer class="foot">
+  <p>Knot Archive. Every knot here is drawn from a model of the rope, not a photo, so the crossings are exact. Practise with real cord before you trust a knot with weight.</p>
+</footer>
+<script type="module" src="src/app.js"></script>
+</body>
+</html>
