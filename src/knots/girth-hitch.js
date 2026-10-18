@@ -55,8 +55,8 @@ const p2b = pose(LEGf, back(xO), front(xO), resample([P(xO, yE, 0.45), P(xO, 90,
 // 2: U lifted back up, now behind the standing parts
 const p2 = pose(LEGf, back(xO), front(xO), hang(xO, 21, 0.45, -0.8));
 // 3: pulled down: the U closes up under the bar round both parts
-const p3 = pose(resample([P(xL, 96, 1), P(xL, 78, 1), P(xL, 58, 1), P(xL, yE, 0)], nL), back(xA), front(xA),
-  hang(xA, 8, 0.45, -0.7));
+const p3 = pose(resample([P(xL, 96, 1), P(xL, 78, 1), P(xL, 56, 1), P(xL, yE, 0)], nL), back(xA), front(xA),
+  hang(xA, 10.5, 0.45, -0.7));
 
 export default {
   id: 'girth-hitch',
