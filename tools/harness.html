@@ -133,13 +133,16 @@ window.lintKnot = async (modPath) => {
       const outside = pts.slice(first).filter((p) => !inView(p)).length;
       if (outside > 1) warnings.push(`step ${si}: strand ${id} has ${outside} points far outside the view box after it enters the frame`);
     }
-    const tangential = res.crossings.filter((c) => c.angle < 0.35).length;
-    const ambiguous = res.crossings.filter((c) => Math.abs(c.a.z - c.b.z) < 0.3).length;
+    const ropeOnly = res.crossings.filter((c) => c.a.ci < ids.length && c.b.ci < ids.length);
+    const tangential = ropeOnly.filter((c) => c.angle < 0.35).length;
+    const ambiguous = ropeOnly.filter((c) => Math.abs(c.a.z - c.b.z) < 0.3).length;
     if (res.conflicts.length) warnings.push(`step ${si}: ${res.conflicts.length} crossing conflict(s) (over and under too close on one strand) near ${res.conflicts.map((c) => `(${c.x.toFixed(0)}, ${c.y.toFixed(0)})`).join(' ')}. Spread the crossings apart.`);
     if (res.cycles) warnings.push(`step ${si}: ${res.cycles} depth cycle(s); some crossing may paint wrong. Check z values.`);
-    if (ambiguous) warnings.push(`step ${si}: ${ambiguous} crossing(s) where both strands have nearly the same z near ${res.crossings.filter((c) => Math.abs(c.a.z - c.b.z) < 0.3).map((c) => `(${c.x.toFixed(0)}, ${c.y.toFixed(0)})`).join(' ')}. Set z to +1 on one and -1 on the other.`);
+    if (ambiguous) warnings.push(`step ${si}: ${ambiguous} crossing(s) where both strands have nearly the same z near ${ropeOnly.filter((c) => Math.abs(c.a.z - c.b.z) < 0.3).map((c) => `(${c.x.toFixed(0)}, ${c.y.toFixed(0)})`).join(' ')}. Set z to +1 on one and -1 on the other.`);
     if (tangential) warnings.push(`step ${si}: ${tangential} crossing(s) at a very shallow angle; they read badly. Make the ropes cross closer to 90 degrees.`);
-    const overlaps = res.contacts.filter((c) => Math.abs(c.a.z - c.b.z) < 0.15).length;
+    // side-by-side overlaps with no depth difference, ignoring the ones right next to a crossing (expected there)
+    const nearCrossing = (e) => res.crossings.some((c) => (c.a.ci === e.ci && Math.abs(c.a.s - e.s) < 2.5 * w) || (c.b.ci === e.ci && Math.abs(c.b.s - e.s) < 2.5 * w));
+    const overlaps = res.contacts.filter((c) => Math.abs(c.a.z - c.b.z) < 0.15 && !nearCrossing(c.a) && !nearCrossing(c.b)).length;
     if (overlaps > 6) warnings.push(`step ${si}: ropes overlap side by side with equal z in ${overlaps} places; nudge one apart or give it a different z.`);
     stepsOut.push({ index: si, title: step.title, crossings: res.crossings.length, conflicts: res.conflicts.length, cycles: res.cycles, lengths, tangential, ambiguous, kinks,
       crossings_list: res.crossings.map((c, i) => `#${i + 1} at (${c.x.toFixed(0)},${c.y.toFixed(0)}): ${name(c.a)} ${c.a.z > c.b.z ? 'over' : 'under'} ${name(c.b)}`),

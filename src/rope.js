@@ -176,7 +176,11 @@ export function analyse(curves, opts) {
         const zb = cb.kind === 'prop' ? cb.z : B.a.z + (B.b.z - B.a.z) * hit.v;
         const x = A.a.x + (A.b.x - A.a.x) * hit.u, y = A.a.y + (A.b.y - A.a.y) * hit.u;
         const sin = Math.max(0.2, Math.sin(hit.angle));
-        const f = Math.min(3 * w, (w / 2) / sin) + w / 2 + ow;
+        // A rope grazing a prop's silhouette runs almost parallel to it, so
+        // the footprint would balloon; there the rope is beside the prop and
+        // the paint order hardly shows, so cap it tighter.
+        const isProp = ca.kind === 'prop' || cb.kind === 'prop';
+        const f = Math.min(isProp ? 1.2 * w : 3 * w, (w / 2) / sin) + w / 2 + ow;
         crossings.push({ a: { ci: A.ci, s: sa, z: za }, b: { ci: B.ci, s: sb, z: zb }, x, y, angle: hit.angle, f });
       } else if (ca.kind === 'rope' && cb.kind === 'rope') {
         const dist = segDist(A.a, A.b, B.a, B.b);
@@ -220,8 +224,11 @@ export function analyse(curves, opts) {
         // rope width; that is expected, not a conflict.
         const c1 = real[e1.idx], c2 = real[e2.idx];
         const other = (c) => (c.a.ci === ci && c.a.s === e1.s) || (c.a.ci === ci && c.a.s === e2.s) ? c.b.ci : c.a.ci;
-        const graze = curves[other(c1)].kind === 'prop' && other(c1) === other(c2) && e2.s - e1.s < 2 * w;
-        if (!graze) conflicts.push({ ci, s: (e1.s + e2.s) / 2, x: c1.x, y: c1.y });
+        // Report it only when the footprints overlap by more than a rope
+        // width: a smaller overlap is resolved by the weak edges below.
+        const graze = curves[other(c1)].kind === 'prop' || curves[other(c2)].kind === 'prop';
+        const overlap = e1.hi - e2.lo;
+        if (!graze && overlap > w) conflicts.push({ ci, s: (e1.s + e2.s) / 2, x: c1.x, y: c1.y });
       }
     }
     let prev = 0;
@@ -334,16 +341,20 @@ function tracePath(ctx, path) {
 
 // Paint the body of a rope along `path` (a sub-polyline). Draws base colour,
 // lay texture, highlight and shadow, and the working-end band when the path
-// reaches the strand's end. The outline is painted separately so that the
-// body of an over-piece can be re-stroked at joints without touching it.
-function paintBody(ctx, path, strand, style, sEnd) {
+// reaches the strand's end. Cut ends use butt caps (pieces overlap a little
+// at every cut, so the join is invisible); real rope ends get a round disc.
+function paintBody(ctx, path, strand, style, sEnd, ends) {
   const w = strand.width;
-  ctx.lineCap = 'round';
+  const first = path[0], last = path[path.length - 1];
+  ctx.lineCap = 'butt';
   ctx.lineJoin = 'round';
   tracePath(ctx, path);
   ctx.strokeStyle = strand.color;
   ctx.lineWidth = w;
   ctx.stroke();
+  ctx.fillStyle = strand.color;
+  if (ends.start) disc(ctx, first, w / 2);
+  if (ends.end) disc(ctx, last, w / 2);
   if (strand.flat) {
     // webbing: flat tape, two faint edge lines instead of a cylinder
     ctx.save();
@@ -360,9 +371,8 @@ function paintBody(ctx, path, strand, style, sEnd) {
     // Lay of the rope: faint bands across the body, continuous across pieces
     // because the dash offset follows arc length.
     ctx.save();
-    ctx.lineCap = 'butt';
     ctx.setLineDash([w * 0.3, w * 0.7]);
-    ctx.lineDashOffset = -path[0].s;
+    ctx.lineDashOffset = -first.s;
     ctx.strokeStyle = style.textureColor || 'rgba(0,0,0,0.085)';
     ctx.lineWidth = w * 0.86;
     ctx.stroke();
@@ -370,24 +380,27 @@ function paintBody(ctx, path, strand, style, sEnd) {
   }
   // highlight (upper left) and shade (lower right): a cheap cylinder.
   if (!strand.flat) {
-  ctx.save();
-  ctx.translate(-w * 0.11, -w * 0.13);
-  tracePath(ctx, path);
-  ctx.strokeStyle = style.highlight || 'rgba(255,255,255,0.42)';
-  ctx.lineWidth = w * 0.3;
-  ctx.stroke();
-  ctx.restore();
-  ctx.save();
-  ctx.translate(w * 0.1, w * 0.13);
-  tracePath(ctx, path);
-  ctx.strokeStyle = style.shade || 'rgba(0,0,0,0.22)';
-  ctx.lineWidth = w * 0.26;
-  ctx.stroke();
-  ctx.restore();
+    ctx.save();
+    ctx.translate(-w * 0.11, -w * 0.13);
+    tracePath(ctx, path);
+    ctx.strokeStyle = style.highlight || 'rgba(255,255,255,0.42)';
+    ctx.lineWidth = w * 0.3;
+    ctx.stroke();
+    ctx.fillStyle = ctx.strokeStyle;
+    if (ends.start) disc(ctx, first, w * 0.15);
+    if (ends.end) disc(ctx, last, w * 0.15);
+    ctx.restore();
+    ctx.save();
+    ctx.translate(w * 0.1, w * 0.13);
+    tracePath(ctx, path);
+    ctx.strokeStyle = style.shade || 'rgba(0,0,0,0.22)';
+    ctx.lineWidth = w * 0.26;
+    ctx.stroke();
+    ctx.restore();
   }
   // working end band
   const tipLen = strand.tipLen;
-  const s1 = path[path.length - 1].s, s0 = path[0].s;
+  const s1 = last.s, s0 = first.s;
   if (tipLen > 0 && s1 > sEnd - tipLen - 1e-6) {
     const from = Math.max(s0, sEnd - tipLen);
     if (s1 - from > 1e-6) {
@@ -408,6 +421,14 @@ function paintBody(ctx, path, strand, style, sEnd) {
     }
   }
 }
+
+function disc(ctx, p, r) {
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+const CUT_OVERLAP = 0.35; // world units each piece runs past a cut
 
 // Paint one scene. `scene` = {strands:[{ctrl, color, width, tipLen, tipColor, id}], props:[], width, outline}
 // Returns the analysis (used by lint and tests).
@@ -457,22 +478,24 @@ export function paintScene(ctx, scene, style = {}) {
     const piece = node;
     const st = strands[curves[piece.ci].strandIndex];
     const sEnd = st.samples[st.samples.length - 1].s;
-    ctx.lineCap = 'round';
+    const ends = { start: !piece.startCut, end: !piece.endCut };
+    // Run a little past each cut, but only toward a neighbour that is already
+    // painted: the overlap then covers its translucent layers once instead of
+    // doubling them.
+    const sib = res.pieces.filter((p) => p.ci === piece.ci);
+    const prevDone = piece.startCut && sib.some((p) => painted.has(p.id) && Math.abs(p.s1 - piece.s0) < 1e-6);
+    const nextDone = piece.endCut && sib.some((p) => painted.has(p.id) && Math.abs(p.s0 - piece.s1) < 1e-6);
+    const path = subPath(st.samples, prevDone ? piece.s0 - CUT_OVERLAP : piece.s0, nextDone ? piece.s1 + CUT_OVERLAP : piece.s1);
+    ctx.lineCap = 'butt';
     ctx.lineJoin = 'round';
-    tracePath(ctx, piece.path);
+    tracePath(ctx, path);
     ctx.strokeStyle = outlineColor;
     ctx.lineWidth = st.width + 2 * ow;
     ctx.stroke();
-    // Re-paint neighbour bodies at joints so the outline cap we just drew
-    // does not leave a dark crescent across a piece painted earlier.
-    const stub = st.width / 2 + ow + 0.25;
-    const siblings = res.pieces.filter((p) => p.ci === piece.ci);
-    for (const nb of siblings) {
-      if (!painted.has(nb.id)) continue;
-      if (Math.abs(nb.s1 - piece.s0) < 1e-6) paintBody(ctx, subPath(st.samples, Math.max(nb.s0, nb.s1 - stub), nb.s1), st, style, sEnd);
-      if (Math.abs(nb.s0 - piece.s1) < 1e-6) paintBody(ctx, subPath(st.samples, nb.s0, Math.min(nb.s1, nb.s0 + stub)), st, style, sEnd);
-    }
-    paintBody(ctx, piece.path, st, style, sEnd);
+    ctx.fillStyle = outlineColor;
+    if (ends.start) disc(ctx, path[0], st.width / 2 + ow);
+    if (ends.end) disc(ctx, path[path.length - 1], st.width / 2 + ow);
+    paintBody(ctx, path, st, style, sEnd, ends);
     painted.add(piece.id);
   }
   return res;
